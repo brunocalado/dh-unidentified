@@ -31,12 +31,22 @@ As the GM, you always see what things really are. Players only see the mask.
 
 That's the experience this module creates.
 
+### GM View
+
 <p align="center">
   <img width="700" src="docs/preview-gm.webp">
 </p>
 
+### Player View
+
 <p align="center">
   <img width="700" src="docs/preview-player.webp">
+</p>
+
+### Identify
+
+<p align="center">
+  <img width="700" src="docs/preview-identify.webp">
 </p>
 
 ---
