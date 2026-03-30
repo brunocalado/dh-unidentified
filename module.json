@@ -1,0 +1,47 @@
+{
+  "id": "dh-unidentified",
+  "title": "Daggerheart: Unidentified Items",
+  "description": "Allows GMs to mark items as unidentified. Players see a masked name, icon, and description. All inputs are locked.",
+
+  "version": "0.0.1",
+  
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13",
+    "maximum": "13"
+  },
+  
+  "authors": [
+    {"name": "Jack Sands"},
+    {"name": "Mestre Digital"}
+  ],
+  
+  "socket": true,
+  
+  "esmodules": ["scripts/main.js"],
+  "styles": [
+    "styles/module.css",
+    "styles/gm-banner.css",
+    "styles/mystify-dialog.css",
+    "styles/cfg-dialog.css",
+    "styles/identify-app.css",
+    "styles/guide-dialog.css"
+  ],
+  
+  "relationships": {
+    "systems": [
+      {
+        "id": "daggerheart",
+        "type": "system",
+        "compatibility": {
+          "minimum": "1.9.0"
+        }
+      }
+    ]
+  },  
+
+  "url": "https://github.com/brunocalado/dh-unidentified",
+  "manifest": "https://raw.githubusercontent.com/brunocalado/dh-unidentified/main/module.json",
+  "download": "https://codeload.github.com/brunocalado/dh-unidentified/zip/main"
+  
+}

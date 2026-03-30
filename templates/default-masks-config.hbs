@@ -1,0 +1,76 @@
+<nav class="dhui-cfg-tabs">
+  {{#each tabs}}
+  <button type="button"
+          class="dhui-cfg-tab{{#if this.isFirst}} dhui-cfg-tab--active{{/if}}"
+          data-tab="{{this.type}}">
+    {{this.label}}
+  </button>
+  {{/each}}
+  <button type="button" class="dhui-cfg-tab" data-tab="sounds">
+    <i class="fas fa-volume-up"></i> Sounds
+  </button>
+</nav>
+<div class="dhui-cfg-panels">
+  {{#each tabs}}
+  <div class="dhui-cfg-panel{{#if this.isFirst}} dhui-cfg-panel--active{{/if}}"
+       data-panel="{{this.type}}">
+    <div class="dhui-cfg-field">
+      <label>Masked Name</label>
+      <input type="text" name="{{this.type}}.maskedName" value="{{this.maskedName}}"
+             placeholder="Unidentified {{this.label}}" />
+    </div>
+    <div class="dhui-cfg-field dhui-cfg-field--img">
+      <label>Masked Icon Path</label>
+      <input type="text" name="{{this.type}}.maskedImg" value="{{this.maskedImg}}"
+             placeholder="icons/svg/item-bag.svg" />
+      <button type="button" class="dhui-cfg-pick-img" data-type="{{this.type}}"
+              title="Browse files"><i class="fas fa-folder-open"></i></button>
+    </div>
+    <div class="dhui-cfg-field">
+      <label>Masked Description</label>
+      <textarea name="{{this.type}}.maskedDesc"
+                rows="3"
+                placeholder="A mysterious item.">{{this.maskedDesc}}</textarea>
+    </div>
+    <div class="dhui-cfg-field dhui-cfg-toggle-row">
+      <label class="dhui-cfg-toggle-label" for="{{this.type}}-use-settings-img">
+        Use masked image from settings
+      </label>
+      <label class="dhui-cfg-switch" title="ON: use the image defined above as the initial icon. OFF: use the item's own image.">
+        <input
+          type="checkbox"
+          id="{{this.type}}-use-settings-img"
+          name="{{this.type}}.useSettingsImg"
+          {{#if this.useSettingsImg}}checked{{/if}}
+        />
+        <span class="dhui-cfg-switch-track"></span>
+      </label>
+    </div>
+  </div>
+  {{/each}}
+  <div class="dhui-cfg-panel" data-panel="sounds">
+    <p class="dhui-cfg-hint">Sound effects played on the rolling player's client after an identify roll.</p>
+    <div class="dhui-cfg-field dhui-cfg-field--img">
+      <label>Success Sound</label>
+      <input type="text" name="sfx.successPath" value="{{sfx.successPath}}"
+             placeholder="modules/dh-unidentified/assets/sfx/success.mp3" />
+      <button type="button" class="dhui-cfg-pick-sfx" data-sfx="successPath"
+              title="Browse audio files"><i class="fas fa-folder-open"></i></button>
+    </div>
+    <div class="dhui-cfg-field dhui-cfg-field--img">
+      <label>Failure Sound</label>
+      <input type="text" name="sfx.failurePath" value="{{sfx.failurePath}}"
+             placeholder="modules/dh-unidentified/assets/sfx/failure.mp3" />
+      <button type="button" class="dhui-cfg-pick-sfx" data-sfx="failurePath"
+              title="Browse audio files"><i class="fas fa-folder-open"></i></button>
+    </div>
+  </div>
+</div>
+<footer class="dhui-cfg-footer">
+  <button type="button" class="dhui-cfg-btn dhui-cfg-btn--save">
+    <i class="fas fa-save"></i> Save
+  </button>
+  <button type="button" class="dhui-cfg-btn dhui-cfg-btn--cancel">
+    <i class="fas fa-times"></i> Cancel
+  </button>
+</footer>

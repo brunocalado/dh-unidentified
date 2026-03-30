@@ -1,0 +1,468 @@
+/* ============================================================
+   dh-unidentified | identify-app.css
+   GM Identify App, Player Identify Request dialog, and
+   Player Identify dialog footer buttons.
+   ============================================================ */
+
+/* ── Identify App — GM dialog (#dhui-identify-app) ── */
+
+#dhui-identify-app {
+  .window-content {
+    padding: 15px;
+    background: var(--dhui-surface);
+    color: var(--dhui-accent-text);
+  }
+
+  .dhui-identify-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+
+  .dhui-identify-left,
+  .dhui-identify-right {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .dhui-identify-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .dhui-identify-field--items {
+    flex: 1;
+  }
+
+  .dhui-identify-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--dhui-accent-text);
+  }
+
+  /* Player combobox */
+  .dhui-identify-select {
+    width: 100%;
+    padding: 7px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--dhui-border);
+    background: var(--dhui-surface-2);
+    color: var(--dhui-text);
+    font-size: 13px;
+    cursor: pointer;
+
+    &:focus {
+      outline: none;
+      border-color: var(--dhui-accent-text);
+    }
+  }
+
+  /* Unidentified item list */
+  .dhui-identify-item-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    min-height: 80px;
+    max-height: 220px;
+    overflow-y: auto;
+    border: 1px solid var(--dhui-border-muted);
+    border-radius: 4px;
+    background: var(--dhui-bg);
+  }
+
+  .dhui-identify-empty {
+    padding: 12px 10px;
+    color: var(--dhui-text-dim);
+    font-style: italic;
+    font-size: 12px;
+    text-align: center;
+  }
+
+  .dhui-identify-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--dhui-border-muted);
+    transition: background var(--dhui-transition);
+    position: relative; /* Required to anchor the absolute-positioned peek tooltip */
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background: rgba(201, 160, 96, 0.08);
+    }
+  }
+
+  .dhui-identify-item__img {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    border: none;
+    flex-shrink: 0;
+  }
+
+  .dhui-identify-item__name {
+    font-size: 13px;
+    color: var(--dhui-text);
+    font-style: italic;
+  }
+
+  /* Item row: actions wrapper — two icon buttons aligned to the right */
+  .dhui-identify-item__actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  /* Shared style for peek and sheet icon buttons */
+  .dhui-identify-item__peek-btn,
+  .dhui-identify-item__sheet-btn {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--dhui-border-muted);
+    border-radius: 3px;
+    color: var(--dhui-text-dim);
+    cursor: pointer;
+    font-size: 11px;
+    transition: background var(--dhui-transition), color var(--dhui-transition), border-color var(--dhui-transition);
+    flex-shrink: 0;
+  }
+
+  .dhui-identify-item__peek-btn:hover {
+    background: rgba(201, 160, 96, 0.15);
+    color: var(--dhui-accent-text);
+    border-color: var(--dhui-accent-text);
+  }
+
+  .dhui-identify-item__sheet-btn:hover {
+    background: rgba(32, 201, 124, 0.15);
+    color: var(--dhui-teal);
+    border-color: var(--dhui-teal);
+  }
+
+  /* Tooltip mounted on document.body (position:fixed) to escape the overflow-clipped
+     scroll container. Coordinates are set dynamically in _refreshItemList. */
+  .dhui-identify-item__tooltip {
+    position: fixed;
+    z-index: 9999;
+    min-width: 220px;
+    max-width: 320px;
+    background: var(--dhui-surface);
+    border: 1px solid var(--dhui-accent-text);
+    border-radius: 4px;
+    padding: 10px 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+    pointer-events: none;
+  }
+
+  .dhui-peek-tip__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .dhui-peek-tip__img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    flex-shrink: 0;
+    border: none;
+  }
+
+  .dhui-peek-tip__name {
+    color: var(--dhui-accent-text);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .dhui-peek-tip__desc {
+    color: var(--dhui-text-muted);
+    font-size: 11px;
+    line-height: 1.5;
+    margin: 0;
+    max-height: 80px;
+    overflow-y: auto;
+  }
+
+  /* Selected item — teal outline matching existing .dhui-unidentified-row */
+  .dhui-identify-item--selected {
+    background: rgba(0, 58, 42, 0.35) !important;
+    outline: 1px solid #20c97c88;
+    border-radius: 3px;
+  }
+
+  /* Trait grid — 2×3 */
+  .dhui-identify-trait-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 5px;
+  }
+
+  .dhui-identify-trait-btn {
+    background: var(--dhui-surface);
+    color: #ffffff;
+    border: 1px solid var(--dhui-text-dim);
+    padding: 6px 4px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 0.85em;
+    text-transform: uppercase;
+    transition: border-color var(--dhui-transition), color var(--dhui-transition),
+                background var(--dhui-transition), box-shadow var(--dhui-transition);
+
+    &:hover {
+      border-color: var(--dhui-accent-text);
+      color: var(--dhui-accent-text);
+    }
+
+    &.active {
+      background: var(--dhui-accent-text);
+      color: var(--dhui-surface);
+      border-color: var(--dhui-accent-text);
+      font-weight: bold;
+      box-shadow: 0 0 8px rgba(201, 160, 96, 0.4);
+    }
+  }
+
+  /* Difficulty row */
+  .dhui-identify-dc-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .dhui-identify-dc-input {
+    flex: 1;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--dhui-border);
+    padding: 5px;
+    border-radius: 4px;
+    color: #000;
+    font-weight: bold;
+    min-width: 0;
+  }
+
+  .dhui-identify-mod-btn {
+    width: 30px;
+    height: 28px;
+    padding: 0;
+    border: 1px solid var(--dhui-border);
+    background: var(--dhui-surface);
+    color: var(--dhui-accent-text);
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background var(--dhui-transition);
+    font-size: 0.8em;
+    flex-shrink: 0;
+
+    &:hover {
+      background: var(--dhui-accent-text);
+      color: var(--dhui-surface);
+    }
+  }
+
+  /* Advantage / Disadvantage checkboxes */
+  .dhui-identify-cb-row {
+    display: flex;
+    gap: 18px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 8px 10px;
+    border-radius: 4px;
+  }
+
+  .dhui-identify-cb-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--dhui-text);
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: normal;
+    text-transform: none;
+    letter-spacing: normal;
+
+    input {
+      accent-color: var(--dhui-accent-text);
+      transform: scale(1.2);
+      margin: 0;
+    }
+  }
+
+  /* Action buttons */
+  .dhui-identify-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: auto;
+  }
+
+  .dhui-identify-send-btn {
+    background: linear-gradient(135deg, #5c3a10, #3a2008);
+    color: var(--dhui-accent-text);
+    border: 1px solid #8c5a20;
+    padding: 10px;
+    width: 100%;
+    font-size: 0.95em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.2s, box-shadow 0.2s;
+
+    &:hover {
+      background: linear-gradient(135deg, #704510, #5c3a10);
+      box-shadow: 0 0 8px rgba(245, 200, 122, 0.4);
+    }
+  }
+
+  .dhui-identify-cancel-btn {
+    background: transparent;
+    color: var(--dhui-text-dim);
+    border: 1px solid var(--dhui-border-muted);
+    padding: 7px;
+    width: 100%;
+    font-size: 0.85em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: color 0.2s, border-color 0.2s;
+
+    &:hover {
+      color: var(--dhui-text);
+      border-color: var(--dhui-text-dim);
+    }
+  }
+}
+
+/* ── Player Identify Request Dialog ── */
+
+.dhui-player-identify {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px 4px;
+  background: var(--dhui-bg);
+  color: var(--dhui-text);
+}
+
+.dhui-player-identify__item-wrap {
+  width: 140px;
+  height: 140px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--dhui-border);
+  background: var(--dhui-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dhui-player-identify__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border: none;
+}
+
+.dhui-player-identify__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  width: 100%;
+}
+
+.dhui-player-identify__meta-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+}
+
+.dhui-player-identify__meta-label {
+  color: var(--dhui-text-dim);
+  font-weight: 400;
+}
+
+.dhui-player-identify__meta-value {
+  color: var(--dhui-text);
+  font-weight: 600;
+}
+
+.dhui-player-identify__meta-value--highlight {
+  color: var(--dhui-accent-text);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.dhui-player-identify__meta-value--trait {
+  color: #7aa8d0;
+  font-weight: 600;
+}
+
+/* Fix for "Roll to Identify" button rendered by the IdentifyPromptApp.
+   Vertical alignment issue comes from inconsistent line-height inheritance.
+   Scoped via .dhui-player-identify-dialog added to IdentifyPromptApp classes. */
+.dhui-player-identify-dialog .form-footer button,
+.dhui-player-identify-dialog footer button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  line-height: 1;
+  padding: 10px 20px;
+  min-height: 40px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  background: var(--dhui-accent);
+  color: var(--dhui-bg);
+  border: 1px solid var(--dhui-accent);
+  border-radius: 5px;
+  cursor: pointer;
+  width: 100%;
+  transition: background var(--dhui-transition), box-shadow var(--dhui-transition);
+}
+
+.dhui-player-identify-dialog .form-footer button:hover,
+.dhui-player-identify-dialog footer button:hover {
+  background: var(--dhui-accent-hover);
+  box-shadow: 0 0 10px rgba(201, 124, 32, 0.5);
+}
+
+.dhui-player-identify-dialog .form-footer button i,
+.dhui-player-identify-dialog footer button i {
+  font-size: 12px;
+  line-height: 1;
+  vertical-align: middle;
+  margin-right: 2px;
+}

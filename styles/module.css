@@ -1,0 +1,135 @@
+/* ============================================================
+   dh-unidentified | module.css
+   Design tokens & shared utility classes.
+   All selectors scoped to .dhui-* or #dhui-*.
+   ============================================================ */
+
+/* ── Module-wide design tokens ── */
+
+:root {
+  --dhui-bg:           #0e0c08;
+  --dhui-surface:      #1e1a12;
+  --dhui-surface-2:    #2a2318;
+  --dhui-border:       #5a4a32;
+  --dhui-border-muted: #4a3a20;
+  --dhui-text:         #f0e8d0;
+  --dhui-text-muted:   #e8d5b0;
+  --dhui-text-dim:     #a08a6a;
+  --dhui-accent:       #c97c20;
+  --dhui-accent-hover: #e08e28;
+  --dhui-accent-text:  #f5c87a;
+  --dhui-teal:         #20c97c;
+  --dhui-teal-light:   #90ffd8;
+  --dhui-teal-muted:   #60c8a0;
+  --dhui-teal-bg:      #003a2a;
+  --dhui-teal-bg-2:    #002a1e;
+  --dhui-purple:       #7755cc;
+  --dhui-purple-light: #c0a0ff;
+  --dhui-purple-bg:    #1a0a2a;
+  --dhui-purple-bg-2:  #120820;
+  --dhui-radius:       5px;
+  --dhui-transition:   150ms ease;
+}
+
+/* ── Controls-dropdown separator ── */
+
+.dhui-menu-sep {
+  height: 1px;
+  background: rgba(255,255,255,0.15);
+  margin: 4px 8px;
+  list-style: none;
+  pointer-events: none;
+}
+
+/* ── Shared button base ── */
+
+.dhui-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background var(--dhui-transition), color var(--dhui-transition),
+              border-color var(--dhui-transition), box-shadow var(--dhui-transition);
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+/* Identify — green */
+.dhui-btn--identify {
+  background: linear-gradient(135deg, #1a5c2a, #145020);
+  color: var(--dhui-teal-light);
+  border-color: #2a8c4a;
+}
+.dhui-btn--identify:hover {
+  background: linear-gradient(135deg, #20702f, #1a5c2a);
+  box-shadow: 0 0 7px rgba(144, 255, 216, 0.4);
+}
+
+/* Re-mystify — muted blue */
+.dhui-btn--remystify {
+  background: linear-gradient(135deg, #1a2a4a, #101a30);
+  color: #a0c0ff;
+  border-color: #2a4a8c;
+}
+.dhui-btn--remystify:hover {
+  background: linear-gradient(135deg, #20355a, #1a2a4a);
+  box-shadow: 0 0 7px rgba(160, 192, 255, 0.4);
+}
+
+/* Mystify — amber */
+.dhui-btn--mystify {
+  background: linear-gradient(135deg, #5c3a10, #3a2008);
+  color: var(--dhui-accent-text);
+  border-color: #8c5a20;
+}
+.dhui-btn--mystify:hover {
+  background: linear-gradient(135deg, #704510, #5c3a10);
+  box-shadow: 0 0 7px rgba(245, 200, 122, 0.4);
+}
+
+/* ── Hide stats header for player view ── */
+
+/* Hides weapon/armor subtype and stat block rendered by getDescriptionData()
+   inside the sheet header. The class is added by _applyPlayerView() in sheet-hook.js. */
+.dhui-unidentified-player-view .item-description {
+  display: none !important;
+}
+
+/* ── Lock overlay (inside .window-content only) ── */
+
+.dhui-lock-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  background: transparent;
+  cursor: not-allowed;
+  pointer-events: all;
+}
+
+/* ── Context menu injected entries ── */
+
+.dhui-ctx-sep {
+  height: 1px;
+  background: rgba(255,255,255,0.1);
+  margin: 3px 6px;
+  pointer-events: none;
+  list-style: none;
+}
+
+/* ── Sidebar: teal dot indicator for unidentified items (GM only) ── */
+
+.dhui-sidebar-dot {
+  font-size: 7px;
+  color: var(--dhui-teal);
+  margin-right: 5px;
+  vertical-align: middle;
+  opacity: 0.85;
+  flex-shrink: 0;
+}

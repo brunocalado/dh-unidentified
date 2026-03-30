@@ -1,0 +1,25 @@
+{{!-- identify-player-request.hbs --}}
+{{!-- Dialog shown to the player for making the identification roll --}}
+<section class="dhui-player-identify">
+
+  <div class="dhui-player-identify__item-wrap">
+    <img
+      class="dhui-player-identify__img"
+      src="{{maskedImg}}"
+      alt="{{maskedName}}"
+      draggable="false"
+    />
+  </div>
+
+  <div class="dhui-player-identify__meta">
+    <div class="dhui-player-identify__meta-row">
+      <span class="dhui-player-identify__meta-label">Difficulty:</span>
+      <span class="dhui-player-identify__meta-value dhui-player-identify__meta-value--highlight">{{difficulty}}</span>
+    </div>
+    <div class="dhui-player-identify__meta-row">
+      <span class="dhui-player-identify__meta-label">Check:</span>
+      <span class="dhui-player-identify__meta-value dhui-player-identify__meta-value--trait">{{trait}}</span>
+    </div>
+  </div>
+
+</section>

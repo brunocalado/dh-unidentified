@@ -1,0 +1,77 @@
+<div class="dhui-identify-layout">
+
+    <!-- LEFT: target player + unidentified item list -->
+    <div class="dhui-identify-left">
+
+        <div class="dhui-identify-field">
+            <label class="dhui-identify-label">Player</label>
+            <select name="targetUser" class="dhui-identify-select">
+                <option value="">— Select a player —</option>
+                {{#each users}}
+                <option value="{{this.id}}" {{#if (eq this.id ../selectedUserId)}}selected{{/if}}
+                        style="color:{{this.color}}">
+                    {{this.name}}
+                </option>
+                {{/each}}
+            </select>
+        </div>
+
+        <div class="dhui-identify-field dhui-identify-field--items">
+            <label class="dhui-identify-label">Unidentified Item</label>
+            <ul class="dhui-identify-item-list">
+                <!-- Populated dynamically by IdentifyApp._refreshItemList() -->
+                <li class="dhui-identify-empty">Select a player above.</li>
+            </ul>
+        </div>
+
+    </div>
+
+    <!-- RIGHT: roll configuration -->
+    <div class="dhui-identify-right">
+
+        <div class="dhui-identify-field">
+            <label class="dhui-identify-label">Trait</label>
+            <input type="hidden" name="trait" value="">
+            <div class="dhui-identify-trait-grid">
+                {{#each traits}}
+                <button type="button" class="dhui-identify-trait-btn" data-trait="{{this}}">{{this}}</button>
+                {{/each}}
+            </div>
+        </div>
+
+        <div class="dhui-identify-field">
+            <label class="dhui-identify-label">Difficulty</label>
+            <div class="dhui-identify-dc-row">
+                <button type="button" class="dhui-identify-mod-btn" data-action="mod-dc" data-value="-5">-5</button>
+                <button type="button" class="dhui-identify-mod-btn" data-action="mod-dc" data-value="-2">-2</button>
+                <button type="button" class="dhui-identify-mod-btn" data-action="mod-dc" data-value="-1">-1</button>
+                <input type="number" name="difficulty" value="{{difficulty}}" class="dhui-identify-dc-input">
+                <button type="button" class="dhui-identify-mod-btn" data-action="mod-dc" data-value="1">+1</button>
+                <button type="button" class="dhui-identify-mod-btn" data-action="mod-dc" data-value="2">+2</button>
+                <button type="button" class="dhui-identify-mod-btn" data-action="mod-dc" data-value="5">+5</button>
+            </div>
+        </div>
+
+        <div class="dhui-identify-field">
+            <div class="dhui-identify-cb-row">
+                <label class="dhui-identify-cb-label">
+                    <input type="checkbox" name="advantage"> Advantage
+                </label>
+                <label class="dhui-identify-cb-label">
+                    <input type="checkbox" name="disadvantage"> Disadvantage
+                </label>
+            </div>
+        </div>
+
+        <div class="dhui-identify-actions">
+            <button type="button" class="dhui-identify-send-btn" data-action="send">
+                <i class="fas fa-paper-plane"></i> Send to Player
+            </button>
+            <button type="button" class="dhui-identify-cancel-btn" data-action="cancel">
+                Cancel
+            </button>
+        </div>
+
+    </div>
+
+</div>

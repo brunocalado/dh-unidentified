@@ -1,0 +1,158 @@
+/* ============================================================
+   dh-unidentified | mystify-dialog.css
+   Mystify dialog content and DialogV2 footer styling.
+   Scoped to .dhui-mystify-dialog (template) and
+   .dhui-mystify-outer (ApplicationV2 classes option).
+   ============================================================ */
+
+.dhui-mystify-dialog {
+  background: var(--dhui-bg);
+  color: var(--dhui-text);
+  padding: 16px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+
+  .dhui-mystify-intro {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    color: var(--dhui-text-muted);
+    margin-bottom: 16px;
+    line-height: 1.55;
+
+    strong {
+      color: var(--dhui-accent-text);
+      font-weight: 700;
+    }
+  }
+
+  .dhui-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 14px;
+  }
+
+  .dhui-label {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--dhui-text-muted);
+  }
+
+  .dhui-input {
+    width: 100%;
+    background: var(--dhui-surface);
+    color: var(--dhui-text);
+    border: 1px solid var(--dhui-border);
+    border-radius: var(--dhui-radius);
+    padding: 8px 11px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color var(--dhui-transition), box-shadow var(--dhui-transition);
+
+    &:focus {
+      border-color: var(--dhui-accent);
+      box-shadow: 0 0 0 2px rgba(201, 124, 32, 0.28);
+    }
+  }
+
+  .dhui-textarea {
+    min-height: 80px;
+    resize: vertical;
+  }
+
+  /* Image field: input + FilePicker button on same row */
+  .dhui-file-row {
+    display: grid;
+    grid-template-columns: 1fr 34px;
+    gap: 6px;
+    align-items: center;
+
+    .dhui-input { width: 100%; }
+  }
+
+  .dhui-filepicker-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    background: var(--dhui-surface-2);
+    border: 1px solid var(--dhui-border);
+    border-radius: var(--dhui-radius);
+    color: #e8c87a;
+    cursor: pointer;
+    transition: background var(--dhui-transition), color var(--dhui-transition), border-color var(--dhui-transition);
+
+    &:hover {
+      background: #3a2e14;
+      color: #f5d890;
+      border-color: var(--dhui-accent);
+    }
+  }
+}
+
+/* DialogV2 footer — scoped via the outer wrapper class */
+.dhui-mystify-outer {
+  .form-footer {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    padding: 12px 20px 16px;
+    border-top: 1px solid var(--dhui-border);
+    background: var(--dhui-bg);
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 7px 18px;
+      min-height: 36px;
+      line-height: 1;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-radius: 5px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: background var(--dhui-transition), box-shadow var(--dhui-transition), transform 80ms ease;
+
+      &:active {
+        transform: translateY(1px);
+      }
+
+      /* Primary — Mystify */
+      &[data-action="confirm"] {
+        background: var(--dhui-accent);
+        color: var(--dhui-bg);
+        border-color: var(--dhui-accent);
+
+        &:hover {
+          background: var(--dhui-accent-hover);
+          box-shadow: 0 0 10px rgba(201, 124, 32, 0.5);
+        }
+      }
+
+      /* Secondary — Cancel */
+      &[data-action="cancel"] {
+        background: transparent;
+        color: var(--dhui-text-dim);
+        border-color: var(--dhui-border);
+
+        &:hover {
+          color: var(--dhui-text-muted);
+          border-color: var(--dhui-text-dim);
+        }
+      }
+    }
+  }
+}

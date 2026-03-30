@@ -1,0 +1,41 @@
+<div class="dhui-mystify-dialog">
+  <p class="dhui-mystify-intro">
+    Configure what the <strong>player sees</strong> while the item is unidentified.
+  </p>
+
+  <div class="dhui-field-group">
+    <label class="dhui-label" for="dh-masked-name">Masked Name</label>
+    <input
+      class="dhui-input"
+      type="text"
+      id="dh-masked-name"
+      name="maskedName"
+      value="{{maskedName}}"
+    />
+  </div>
+
+  <div class="dhui-field-group">
+    <label class="dhui-label" for="dh-masked-img">Masked Icon Path</label>
+    <div class="dhui-file-row">
+      <input
+        class="dhui-input"
+        type="text"
+        id="dh-masked-img"
+        name="maskedImg"
+        value="{{maskedImg}}"
+      />
+      <button type="button" class="dhui-filepicker-btn" data-action="browse" title="Browse files">
+        <i class="fas fa-folder-open"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="dhui-field-group">
+    <label class="dhui-label" for="dh-masked-desc">Masked Description (visible to player)</label>
+    <textarea
+      class="dhui-input dhui-textarea"
+      id="dh-masked-desc"
+      name="maskedDesc"
+    >{{maskedDesc}}</textarea>
+  </div>
+</div>
