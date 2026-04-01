@@ -10,7 +10,7 @@ No more accidentally spoiling the twist. No more players metagaming because they
 
 ---
 
-## ✨ What It Does
+## What It Does
 
 When you mark an item as unidentified, your players see a generic placeholder — something like *"Unidentified Weapon"* or *"Unidentified Consumable"* — instead of the real item. You control what gets revealed and when.
 
