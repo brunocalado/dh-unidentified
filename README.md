@@ -97,7 +97,7 @@ https://raw.githubusercontent.com/brunocalado/dh-unidentified/main/module.json
 
 * **Code License:** GNU GPLv3.
 
-* **Assets:** AI images and videos provided are [CC0 1.0 Universal Public Domain](https://creativecommons.org/publicdomain/zero/1.0/).
+* **banner.webp and thumbnail.webp:** [Question mark icons created by Freepik - Flaticon](https://www.flaticon.com/free-icons/question-mark).
 
 * **failure.mp3, success.mp3:** [License](https://pixabay.com/service/license-summary/)
 
