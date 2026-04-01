@@ -16,18 +16,18 @@ When you mark an item as unidentified, your players see a generic placeholder �
 
 Here's the full loop:
 
-- 🎭 **Disguise any item** — give it a fake name, a fake image, or both
-- 🎲 **Request an Identify Roll** — send a roll request to a specific player, choosing the trait and difficulty yourself
-- ✅ **Reveal on success** — the item shows its true identity the moment the roll lands
-- 🔒 **Keep secrets on failure** — the item stays masked, mystery intact
+- **Disguise any item** — give it a fake name, a fake image, or both
+- **Request an Identify Roll** — send a roll request to a specific player, choosing the trait and difficulty yourself
+- **Reveal on success** — the item shows its true identity the moment the roll lands
+- **Keep secrets on failure** — the item stays masked, mystery intact
 
 As the GM, you always see what things really are. Players only see the mask.
 
 ---
 
-## 🎬 How It Looks in Play
+## How It Looks in Play
 
-> *Your players enter a dungeon and find a glowing blade on the floor. In their inventory, it appears as "Unidentified Weapon" with a question mark icon. Later, when they try to figure out what it is, you open the Identify Request dialog — pick the player, pick the trait (maybe Knowledge? Instinct?), set a difficulty, and send it. The dice roll. On a success, the item reveals itself as "Alistair's Torch" complete with its full description. The table reacts.*
+> *Your players enter a dungeon and find a glowing blade on the floor. In their inventory, it appears as "Unidentified Weapon" with a question mark icon. Later, when they try to figure out what it is, you open the Identify Request dialog — pick the player, pick the trait (maybe Knowledge? Instinct?), set a difficulty, and send it. The dice roll. On a success, the item reveals itself as "Sword of Eternal Light" complete with its full description. The table reacts.*
 
 That's the experience this module creates.
 
@@ -51,7 +51,7 @@ That's the experience this module creates.
 
 ---
 
-## 🧰 Features at a Glance
+## Features at a Glance
 
 | Feature | Description |
 |---|---|
@@ -65,7 +65,7 @@ That's the experience this module creates.
 
 ---
 
-## 🛠️ How to Use
+## How to Use
 
 **Step 1 — Unidentify an item**
 
@@ -85,7 +85,7 @@ You can also reveal any item manually at any time, no roll needed. Just right-cl
 
 ---
 
-## 📥 Installation
+## Installation
 
 Install via the Foundry VTT Module browser or use this manifest link:
 
@@ -93,7 +93,7 @@ Install via the Foundry VTT Module browser or use this manifest link:
 https://raw.githubusercontent.com/brunocalado/dh-unidentified/main/module.json
 ```
 
-## ⚖️ Credits & License
+## Credits & License
 
 * **Code License:** GNU GPLv3.
 
