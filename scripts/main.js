@@ -162,8 +162,10 @@ function _registerHooks() {
         action: "dhuiidentify",
       });
       app.options.actions ??= {};
+      // Opens the dialog so the GM can inspect the mask and choose to identify
+      // or re-mystify, rather than identifying immediately without confirmation.
       app.options.actions["dhuiidentify"] = async () => {
-        await identifyItem(item);
+        await openMystifyDialog(item);
         app.render({ force: true });
         _rerenderSheetsForItem(item);
       };

@@ -22,7 +22,7 @@
 //   - .window-header is NOT touched — close (X) button always works
 // ============================================================
 
-import { isUnidentified, isSupported, openMystifyDialog, identifyItem, getFlags, getDisplayName, getDisplayImg } from "./unidentified.js";
+import { isUnidentified, isSupported, openMystifyDialog, getDisplayName, getDisplayImg } from "./unidentified.js";
 
 // ── Cleanup utilities ─────────────────────────────────────────
 
@@ -87,22 +87,17 @@ export function onRenderItemSheet(app, element) {
  * @param {Item} item
  */
 function _applyGMViewUnidentified(app, frame, controlsMenu, content, item) {
-  if (content) _injectGMBanner(content, item);
+  if (content) _injectGMBanner(content);
   _injectGMMenuEntries(controlsMenu, app, item, { identified: false });
   _injectStateToggleButton(app, frame, item);
 }
 
 /**
- * Injects a banner inside .window-content showing the masked presentation name.
- * The GM sees the real item sheet below; this banner makes it explicit that
- * the item is currently masked as a different identity for players.
+ * Injects a banner inside .window-content to signal that the item is currently
+ * unidentified. The GM sees the real item sheet below the banner.
  * @param {HTMLElement} content
- * @param {Item} item
  */
-function _injectGMBanner(content, item) {
-  const flags      = getFlags(item);
-  const maskedName = flags.maskedName ?? "?";
-
+function _injectGMBanner(content) {
   const banner = document.createElement("div");
   banner.className = "dhui-gm-banner";
   banner.innerHTML = `
@@ -110,7 +105,6 @@ function _injectGMBanner(content, item) {
     <div class="dhui-gm-banner__text">
       <span class="dhui-gm-banner__row">
         <strong>Unidentified</strong>
-        <span class="dhui-gm-banner__hint">— players see: <em>${_escInner(maskedName)}</em> (use ⋮ to identify)</span>
       </span>
     </div>
   `;
@@ -179,11 +173,8 @@ function _injectStateToggleButton(app, frame, item) {
   header.insertBefore(btn, menuBtn ?? null);
 
   btn.addEventListener("click", async () => {
-    if (isUnidentified(item)) {
-      await identifyItem(item);
-    } else {
-      await openMystifyDialog(item);
-    }
+    // Always open the dialog — the GM decides inside whether to mystify or identify.
+    await openMystifyDialog(item);
     app.render({ force: true });
     // Also rerender the owning actor sheet so inventory rows reflect the new state.
     if (item.parent instanceof Actor && item.parent.sheet?.rendered) {
@@ -348,16 +339,3 @@ function _restoreHeaderButtons(app, frame) {
   }
 }
 
-/**
- * HTML-escapes a string for safe insertion into attribute values or text content.
- * Local variant for this file; _esc in unidentified.js is the canonical export.
- * @param {string|null|undefined} str
- * @returns {string}
- */
-function _escInner(str) {
-  return String(str ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}

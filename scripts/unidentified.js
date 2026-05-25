@@ -187,15 +187,19 @@ export async function openMystifyDialog(item) {
     maskedDesc: defaultMaskedDesc,
   });
 
+  // Label the confirm button contextually: re-mystifying keeps the mask,
+  // mystifying an identified item is the initial application.
+  const confirmLabel = isUnidentified(item) ? "Apply Mask" : "Mystify";
+
   const result = await foundry.applications.api.DialogV2.wait({
-    window:   { title: "Mystify Item — DH Unidentified" },
+    window:   { title: "Item Identity — DH Unidentified" },
     classes:  ["dhui-mystify-outer"],
     position: { width: 440 },
     content,
     buttons: [
       {
         action: "confirm",
-        label: "Mystify",
+        label: confirmLabel,
         default: true,
         callback: (_event, button) => {
           const els = button.form.elements;
@@ -205,6 +209,12 @@ export async function openMystifyDialog(item) {
             maskedDesc: els.maskedDesc?.value?.trim() || defaultMaskedDesc,
           };
         },
+      },
+      {
+        // Sentinel string lets the caller distinguish identify from cancel.
+        action: "identify",
+        label: "Identify",
+        callback: () => "identify",
       },
       { action: "cancel", label: "Cancel", callback: () => null },
     ],
@@ -220,6 +230,11 @@ export async function openMystifyDialog(item) {
     },
   }).catch(() => null);
 
+  // "identify" sentinel → reveal the item without touching the mask fields.
+  if (result === "identify") {
+    await identifyItem(item);
+    return;
+  }
   if (!result) return;
   await applyMystify(item, result);
 }
