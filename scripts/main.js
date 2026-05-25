@@ -146,30 +146,37 @@ function _registerHooks() {
   // stopImmediatePropagation in document-capture prevents the event from ever
   // reaching any child element, so the DH context menu is never rendered.
   if (!game.user.isGM) {
+    // Shared helper: parse the embedded-document UUID on an inventory li and return
+    // the unidentified item, or null if the row doesn't represent one.
+    // Expected UUID format: "Actor.{actorId}.{DocumentType}.{docId}"
+    const _getUnidentifiedItemFromLi = (li) => {
+      const uuid = li?.dataset.itemUuid;
+      if (!uuid) return null;
+      const parts = uuid.split(".");
+      if (parts[0] !== "Actor" || parts.length < 4) return null;
+      // Action sub-rows share the same li class but are embedded inside items.
+      if (parts[2] === "Action") return null;
+      const actor = game.actors.get(parts[1]);
+      if (!actor) return null;
+      const item = actor.items.get(parts[3]);
+      if (!item || !isSupported(item) || !isUnidentified(item)) return null;
+      return item;
+    };
+
+    // Block right-click context menu — DH's listener never sees the event.
     document.addEventListener("contextmenu", (event) => {
       const li = event.target.closest("li.inventory-item");
-      if (!li) return;
+      if (!_getUnidentifiedItemFromLi(li)) return;
+      event.stopImmediatePropagation();
+      event.preventDefault();
+    }, true);
 
-      // Use data-item-uuid to extract actor + item IDs without relying on the
-      // sheet element's id format (which varies by system/version).
-      // Expected format: "Actor.{actorId}.{DocumentType}.{docId}"
-      const uuid = li.dataset.itemUuid;
-      if (!uuid) return;
-
-      const parts = uuid.split(".");
-      if (parts[0] !== "Actor" || parts.length < 4) return;
-
-      // Action sub-rows (type === "Action") share the same li class but represent
-      // embedded actions inside items — they don't need to be blocked separately.
-      if (parts[2] === "Action") return;
-
-      const actor = game.actors.get(parts[1]);
-      if (!actor) return;
-
-      const item = actor.items.get(parts[3]);
-      if (!item || !isSupported(item) || !isUnidentified(item)) return;
-
-      // Block entirely — DH's context menu will never see this event.
+    // Block clicks on the item icon so players cannot open the item sheet
+    // or trigger any click-based action on an unidentified item's icon.
+    document.addEventListener("click", (event) => {
+      if (event.target.tagName !== "IMG") return;
+      const li = event.target.closest("li.inventory-item");
+      if (!_getUnidentifiedItemFromLi(li)) return;
       event.stopImmediatePropagation();
       event.preventDefault();
     }, true);
@@ -405,6 +412,7 @@ function _hideUnidentifiedDetails(actor, element) {
     li.querySelectorAll("img").forEach(img => {
       if (!img.dataset.dhuiOrigSrc) img.dataset.dhuiOrigSrc = img.src;
       img.src = maskedImg;
+      img.style.cursor = "default"; // visual cue: icon is not interactive
 
       // Intercept the icon tooltip so real item details are never revealed on hover.
       // Strips data-tooltip* attributes (used by Foundry's TooltipManager) from the img
