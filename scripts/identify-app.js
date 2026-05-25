@@ -30,7 +30,7 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
     static DEFAULT_OPTIONS = {
         id:       "dhui-identify-app",
         tag:      "form",
-        classes:  ["dhui-identify-app"],
+        classes:  ["dhui-identify-app", "daggerheart", "module", "application", "dh-style"],
         window:   { title: "Request Identify Roll", icon: "fas fa-eye", resizable: false, controls: [] },
         position: { width: 600, height: "auto" },
         actions:  { cancel: IdentifyApp.prototype._onCancel },
@@ -330,7 +330,7 @@ export class IdentifyPromptApp extends ApplicationV2 {
     static DEFAULT_OPTIONS = {
         id:       "dhui-identify-prompt",
         tag:      "div",
-        classes:  ["dhui-identify-prompt", "dhui-player-identify-dialog"],
+        classes:  ["dhui-identify-prompt", "dhui-player-identify-dialog", "daggerheart", "module", "application", "dh-style"],
         window:   { title: "Action Required", icon: "fas fa-eye", resizable: false, controls: [] },
         position: { width: 480, height: "auto" },
         actions:  { resolveRoll: IdentifyPromptApp.prototype._onResolveRoll },

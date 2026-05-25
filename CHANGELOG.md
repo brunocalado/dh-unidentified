@@ -1,3 +1,9 @@
+# 0.1.0
+
+- v14 only
+- https://github.com/brunocalado/dh-unidentified/issues/2
+- https://github.com/brunocalado/dh-unidentified/issues/1
+
 # 0.0.3
 
 ### [Changed] Non-destructive unidentified state (breaking architectural change)

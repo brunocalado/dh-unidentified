@@ -215,13 +215,28 @@ export async function openMystifyDialog(item) {
       { action: "cancel", label: "Cancel", callback: () => null },
     ],
     render: (_event, dialog) => {
+      const input = dialog.element.querySelector("input[name='maskedImg']");
+      // CLAUDE.md §2: resolve FilePicker implementation so host environments can substitute
+      const FilePickerClass = foundry.applications.apps.FilePicker.implementation
+        ?? foundry.applications.apps.FilePicker;
+
       dialog.element.querySelector("[data-action='browse']")?.addEventListener("click", () => {
-        const input = dialog.element.querySelector("input[name='maskedImg']");
-        new foundry.applications.apps.FilePicker({
+        new FilePickerClass({
           type: "imagevideo",
           current: input?.value ?? "",
-          callback: path => { if (input) input.value = path; },
+          callback: path => {
+            if (input) input.value = path;
+            // Update icon preview immediately after FilePicker selection
+            const preview = dialog.element.querySelector(".dhui-icon-preview");
+            if (preview) preview.src = path;
+          },
         }).render(true);
+      });
+
+      // Also update preview when the user types a path directly
+      input?.addEventListener("input", () => {
+        const preview = dialog.element.querySelector(".dhui-icon-preview");
+        if (preview) preview.src = input.value;
       });
     },
   }).catch(() => null);

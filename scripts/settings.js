@@ -152,7 +152,7 @@ class DefaultMasksConfig extends foundry.applications.api.ApplicationV2 {
   static DEFAULT_OPTIONS = {
     id:       "dhui-cfg-dialog",
     tag:      "form",
-    classes:  ["dhui-cfg"],
+    classes:  ["dhui-cfg", "daggerheart", "module", "application", "dh-style"],
     window:   { title: "Default Masks — DH Unidentified", resizable: false },
     position: { width: 520, height: "auto" },
   };
@@ -312,7 +312,7 @@ class ModuleGuideApp extends foundry.applications.api.ApplicationV2 {
   static DEFAULT_OPTIONS = {
     id:       "dhui-guide-dialog",
     tag:      "div",
-    classes:  ["dhui-guide-outer"],
+    classes:  ["dhui-guide-outer", "daggerheart", "module", "application", "dh-style"],
     window:   { title: "DH Unidentified — Module Guide", resizable: false, singleton: true },
     position: { width: 560, height: "auto" },
   };

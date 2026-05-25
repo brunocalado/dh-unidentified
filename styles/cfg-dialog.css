@@ -8,7 +8,7 @@
   .dhui-cfg-tabs {
     display: flex;
     border-bottom: 1px solid var(--dhui-border-muted);
-    background: #181410;
+    background: #0a0d14;
     padding: 0 12px;
     gap: 2px;
     flex-shrink: 0;
@@ -84,7 +84,8 @@
 
       &:focus {
         border-color: var(--dhui-accent);
-        box-shadow: 0 0 0 2px rgba(201, 124, 32, 0.28);
+        outline: 2px solid var(--dhui-accent);
+        outline-offset: 1px;
       }
     }
   }
@@ -106,13 +107,13 @@
     border-radius: var(--dhui-radius);
     border: 1px solid var(--dhui-border);
     background: var(--dhui-surface-2);
-    color: #e8c87a;
+    color: var(--dhui-accent-text);
     cursor: pointer;
     transition: background var(--dhui-transition), color var(--dhui-transition), border-color var(--dhui-transition);
 
     &:hover {
-      background: #3a2e14;
-      color: #f5d890;
+      background: #1a1708;
+      color: var(--dhui-accent-text);
       border-color: var(--dhui-accent);
     }
   }
@@ -153,7 +154,7 @@
 
     &:hover {
       background: var(--dhui-accent-hover);
-      box-shadow: 0 0 10px rgba(201, 124, 32, 0.5);
+      box-shadow: 0 0 10px var(--dhui-accent);
     }
   }
 
@@ -203,7 +204,7 @@
       position: absolute;
 
       &:checked + .dhui-cfg-switch-track {
-        background: #5c3a10;
+        background: #1a1400;
         border-color: var(--dhui-accent);
 
         &::after {

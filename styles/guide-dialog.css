@@ -26,9 +26,9 @@
   }
 }
 
-/* Warning section — uses amber/orange tint to draw attention */
+/* Warning section — dark navy tint with golden left border to draw attention */
 .dhui-guide-section--warning {
-  background: #1c1200;
+  background: #080e1a;
   border-left: 4px solid var(--dhui-accent);
 }
 
@@ -36,8 +36,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 13px;
+  font-family: var(--dhui-font-heading);
+  font-size: 14px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.8px;

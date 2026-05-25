@@ -19,7 +19,14 @@
     gap: 18px;
   }
 
-  .dhui-identify-left,
+  .dhui-identify-left {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    border-right: 1px solid var(--dhui-border);
+    padding-right: 18px;
+  }
+
   .dhui-identify-right {
     display: flex;
     flex-direction: column;
@@ -36,7 +43,21 @@
     flex: 1;
   }
 
+  /* Section title above each column (added in template) */
+  .dhui-identify-section-title {
+    font-family: var(--dhui-font-heading);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--dhui-accent-text);
+    border-bottom: 1px dashed var(--dhui-border-muted);
+    padding-bottom: 6px;
+    margin: 0 0 6px;
+  }
+
   .dhui-identify-label {
+    font-family: var(--dhui-font-heading);
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
@@ -97,7 +118,7 @@
     }
 
     &:hover {
-      background: rgba(201, 160, 96, 0.08);
+      background: #14191f;
     }
   }
 
@@ -144,13 +165,13 @@
   }
 
   .dhui-identify-item__peek-btn:hover {
-    background: rgba(201, 160, 96, 0.15);
+    background: #1e1a0a;
     color: var(--dhui-accent-text);
     border-color: var(--dhui-accent-text);
   }
 
   .dhui-identify-item__sheet-btn:hover {
-    background: rgba(32, 201, 124, 0.15);
+    background: #001e14;
     color: var(--dhui-teal);
     border-color: var(--dhui-teal);
   }
@@ -166,7 +187,7 @@
     border: 1px solid var(--dhui-accent-text);
     border-radius: 4px;
     padding: 10px 12px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+    box-shadow: 0 4px 16px #000;
     pointer-events: none;
   }
 
@@ -203,8 +224,8 @@
 
   /* Selected item — teal outline matching existing .dhui-unidentified-row */
   .dhui-identify-item--selected {
-    background: rgba(0, 58, 42, 0.35) !important;
-    outline: 1px solid #20c97c88;
+    background: #001a12 !important;
+    outline: 1px solid #20c97c;
     border-radius: 3px;
   }
 
@@ -237,7 +258,7 @@
       color: var(--dhui-surface);
       border-color: var(--dhui-accent-text);
       font-weight: bold;
-      box-shadow: 0 0 8px rgba(201, 160, 96, 0.4);
+      box-shadow: 0 0 8px var(--dhui-accent);
     }
   }
 
@@ -251,7 +272,7 @@
   .dhui-identify-dc-input {
     flex: 1;
     text-align: center;
-    background: rgba(255, 255, 255, 0.9);
+    background: #ffffff;
     border: 1px solid var(--dhui-border);
     padding: 5px;
     border-radius: 4px;
@@ -287,7 +308,7 @@
   .dhui-identify-cb-row {
     display: flex;
     gap: 18px;
-    background: rgba(0, 0, 0, 0.2);
+    background: #0a0d14;
     padding: 8px 10px;
     border-radius: 4px;
   }
@@ -319,9 +340,9 @@
   }
 
   .dhui-identify-send-btn {
-    background: linear-gradient(135deg, #5c3a10, #3a2008);
+    background: linear-gradient(135deg, #2a1e04, #1a1204);
     color: var(--dhui-accent-text);
-    border: 1px solid #8c5a20;
+    border: 1px solid var(--dhui-accent);
     padding: 10px;
     width: 100%;
     font-size: 0.95em;
@@ -333,8 +354,8 @@
     transition: background 0.2s, box-shadow 0.2s;
 
     &:hover {
-      background: linear-gradient(135deg, #704510, #5c3a10);
-      box-shadow: 0 0 8px rgba(245, 200, 122, 0.4);
+      background: linear-gradient(135deg, #3a2a08, #2a1e04);
+      box-shadow: 0 0 8px var(--dhui-accent);
     }
   }
 
@@ -369,12 +390,22 @@
   color: var(--dhui-text);
 }
 
+.dhui-player-identify__title {
+  font-family: var(--dhui-font-heading);
+  font-size: 16px;
+  color: var(--dhui-accent-text);
+  text-align: center;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
 .dhui-player-identify__item-wrap {
-  width: 140px;
-  height: 140px;
+  width: 160px;
+  height: 160px;
   border-radius: 6px;
   overflow: hidden;
-  border: 1px solid var(--dhui-border);
+  border: 2px solid var(--dhui-border);
   background: var(--dhui-surface);
   display: flex;
   align-items: center;
@@ -456,7 +487,7 @@
 .dhui-player-identify-dialog .form-footer button:hover,
 .dhui-player-identify-dialog footer button:hover {
   background: var(--dhui-accent-hover);
-  box-shadow: 0 0 10px rgba(201, 124, 32, 0.5);
+  box-shadow: 0 0 10px var(--dhui-accent);
 }
 
 .dhui-player-identify-dialog .form-footer button i,

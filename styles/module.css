@@ -7,26 +7,44 @@
 /* ── Module-wide design tokens ── */
 
 :root {
-  --dhui-bg:           #0e0c08;
-  --dhui-surface:      #1e1a12;
-  --dhui-surface-2:    #2a2318;
-  --dhui-border:       #5a4a32;
-  --dhui-border-muted: #4a3a20;
+  /* ── Backgrounds: dark navy palette ── */
+  --dhui-bg:           #0a0d14;
+  --dhui-surface:      #0f1420;
+  --dhui-surface-2:    #141925;
+
+  /* ── Borders ── */
+  --dhui-border:       var(--golden, #c9a84c);   /* golden — section boundaries */
+  --dhui-border-muted: #2a3050;                  /* navy — internal dividers */
+
+  /* ── Text ── */
   --dhui-text:         #f0e8d0;
   --dhui-text-muted:   #e8d5b0;
   --dhui-text-dim:     #a08a6a;
-  --dhui-accent:       #c97c20;
-  --dhui-accent-hover: #e08e28;
-  --dhui-accent-text:  #f5c87a;
+
+  /* ── Accent: Daggerheart golden ── */
+  --dhui-accent:       var(--golden, #c9a84c);
+  --dhui-accent-hover: var(--golden, #d4b460);
+  --dhui-accent-text:  var(--golden, #f5d890);
+
+  /* ── Teal (identification success, GM visibility) ── */
   --dhui-teal:         #20c97c;
   --dhui-teal-light:   #90ffd8;
   --dhui-teal-muted:   #60c8a0;
   --dhui-teal-bg:      #003a2a;
   --dhui-teal-bg-2:    #002a1e;
+
+  /* ── Purple (player-specific) ── */
   --dhui-purple:       #7755cc;
   --dhui-purple-light: #c0a0ff;
   --dhui-purple-bg:    #1a0a2a;
   --dhui-purple-bg-2:  #120820;
+
+  /* ── Typography: Daggerheart font hierarchy ── */
+  --dhui-font-display: 'Cinzel Decorative', 'Cinzel', serif;
+  --dhui-font-heading: 'Cinzel', serif;
+  --dhui-font-body:    'Montserrat', sans-serif;
+
+  /* ── Misc ── */
   --dhui-radius:       5px;
   --dhui-transition:   150ms ease;
 }
@@ -35,7 +53,7 @@
 
 .dhui-menu-sep {
   height: 1px;
-  background: rgba(255,255,255,0.15);
+  background: #2a3050;
   margin: 4px 8px;
   list-style: none;
   pointer-events: none;
@@ -117,7 +135,7 @@
 
 .dhui-ctx-sep {
   height: 1px;
-  background: rgba(255,255,255,0.1);
+  background: #2a3050;
   margin: 3px 6px;
   pointer-events: none;
   list-style: none;

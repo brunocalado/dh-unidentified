@@ -58,7 +58,8 @@
 
     &:focus {
       border-color: var(--dhui-accent);
-      box-shadow: 0 0 0 2px rgba(201, 124, 32, 0.28);
+      outline: 2px solid var(--dhui-accent);
+      outline-offset: 1px;
     }
   }
 
@@ -86,15 +87,32 @@
     background: var(--dhui-surface-2);
     border: 1px solid var(--dhui-border);
     border-radius: var(--dhui-radius);
-    color: #e8c87a;
+    color: var(--dhui-accent-text);
     cursor: pointer;
     transition: background var(--dhui-transition), color var(--dhui-transition), border-color var(--dhui-transition);
 
     &:hover {
-      background: #3a2e14;
-      color: #f5d890;
+      background: #1a1708;
+      color: var(--dhui-accent-text);
       border-color: var(--dhui-accent);
     }
+  }
+
+  /* Icon preview — shown below the file picker row */
+  .dhui-icon-preview-wrap {
+    display: flex;
+    justify-content: center;
+    margin-top: 8px;
+  }
+
+  .dhui-icon-preview {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    border: 1px solid var(--dhui-border);
+    border-radius: var(--dhui-radius);
+    background: var(--dhui-surface);
+    display: block;
   }
 }
 
@@ -138,7 +156,7 @@
 
         &:hover {
           background: var(--dhui-accent-hover);
-          box-shadow: 0 0 10px rgba(201, 124, 32, 0.5);
+          box-shadow: 0 0 10px var(--dhui-accent);
         }
       }
 

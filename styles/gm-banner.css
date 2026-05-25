@@ -11,7 +11,7 @@
   align-items: center;
   gap: 10px;
   padding: 8px 14px;
-  background: linear-gradient(90deg, #003a2aee, #002a1eee);
+  background: linear-gradient(90deg, #003a2a, #002a1e);
   border-bottom: 2px solid var(--dhui-teal);
   color: var(--dhui-teal-light);
   font-size: 12px;
@@ -80,7 +80,7 @@
   justify-content: flex-start;
   gap: 8px;
   padding: 8px 14px;
-  background: linear-gradient(90deg, #1a0a2aee, #120820ee);
+  background: linear-gradient(90deg, #1a0a2a, #120820);
   border-bottom: 2px solid var(--dhui-purple);
   color: var(--dhui-purple-light);
   font-size: 13px;
@@ -95,9 +95,9 @@
 /* ── Unidentified inventory row — teal outline ── */
 
 li.dhui-unidentified-row {
-  outline: 1px solid #20c97c55;
+  outline: 1px solid #20c97c;
   border-radius: 4px;
-  background: rgba(0, 58, 42, 0.18) !important;
+  background: #001a12 !important;
 }
 
 li.dhui-unidentified-row .item-name {
@@ -122,7 +122,7 @@ li.dhui-unidentified-row .item-name {
   box-sizing: border-box;
   border: 1px solid var(--dhui-border-muted);
   border-radius: var(--dhui-radius);
-  background: rgba(0, 0, 0, 0.45);
+  background: #0a0a0a;
   color: var(--dhui-text-muted);
   cursor: pointer;
   overflow: hidden;          /* ensures the icon does not overflow internally */
@@ -132,7 +132,7 @@ li.dhui-unidentified-row .item-name {
   &:hover {
     color: var(--dhui-accent-text);
     border-color: var(--dhui-accent);
-    background: oklch(from var(--dhui-accent) l c h / 0.20);
+    background: #1a1400;
   }
 
   i {
