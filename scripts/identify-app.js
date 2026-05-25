@@ -22,19 +22,27 @@ const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 // IDENTIFY APP — GM dialog
 // ==================================================================
 
+/**
+ * GM-facing dialog for requesting an identify roll from a player.
+ *
+ * NOTE: BASE_APPLICATION is intentionally NOT set on this class.
+ * Setting BASE_APPLICATION on a HandlebarsApplicationMixin subclass stops
+ * DEFAULT_OPTIONS merging from parent classes, which prevents the ApplicationV2
+ * base defaults (window.frame, window.positioned, window.draggable, etc.) from
+ * being inherited — causing the window to render without its chrome (title bar,
+ * close button, drag handle). The reference pattern (see demo/request_roll.js)
+ * confirms that HandlebarsApplicationMixin apps must not set BASE_APPLICATION.
+ */
 export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     /** @type {string|null} ID of the user whose items are currently listed. */
     #selectedUserId = null;
 
-    // Stops DEFAULT_OPTIONS merging and hook dispatch at this class boundary.
-    static BASE_APPLICATION = IdentifyApp;
-
     static DEFAULT_OPTIONS = {
         id:       "dhui-identify-app",
         tag:      "form",
-        classes:  ["dh-unidentified", "dhui-identify-app", "daggerheart", "module", "application", "dh-style"],
-        window:   { title: "Request Identify Roll", icon: "fas fa-eye", resizable: false, controls: [] },
+        classes:  ["dh-unidentified", "dhui-identify-app"],
+        window:   { title: "Request Identify Roll", icon: "fas fa-eye", resizable: false },
         position: { width: 600, height: "auto" },
         actions:  { cancel: IdentifyApp.prototype._onCancel },
     };
@@ -46,7 +54,9 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
     /**
      * Builds template context. Only surfaces users who are active, non-GM,
      * and have a linked character actor — the only actors we can query for items.
+     * Called automatically by HandlebarsApplicationMixin before rendering each PART.
      * @override
+     * @param {object} _options
      * @returns {Promise<object>}
      */
     async _prepareContext(_options) {
@@ -330,14 +340,14 @@ export class IdentifyPromptApp extends ApplicationV2 {
         this.data = data;
     }
 
-    // Stops DEFAULT_OPTIONS merging and hook dispatch at this class boundary.
+    // Direct ApplicationV2 subclass — BASE_APPLICATION is appropriate here.
     static BASE_APPLICATION = IdentifyPromptApp;
 
     static DEFAULT_OPTIONS = {
         id:       "dhui-identify-prompt",
         tag:      "div",
-        classes:  ["dh-unidentified", "dhui-identify-prompt", "dhui-player-identify-dialog", "daggerheart", "module", "application", "dh-style"],
-        window:   { title: "Action Required", icon: "fas fa-eye", resizable: false, controls: [] },
+        classes:  ["dh-unidentified", "dhui-identify-prompt", "dhui-player-identify-dialog"],
+        window:   { title: "Action Required", icon: "fas fa-eye", resizable: false },
         position: { width: 480, height: "auto" },
         actions:  { resolveRoll: IdentifyPromptApp.prototype._onResolveRoll },
     };

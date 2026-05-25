@@ -1,0 +1,54 @@
+/* Daggerheart Quick Actions - Base Application Styles
+   Namespace .dh-qa-app used to avoid conflicts.
+*/
+
+/* --- General Application Styles --- */
+.dh-qa-app .window-content {
+    padding: 15px;
+    background: #191919;
+    color: #C9A060; /* Default Gold color for text */
+}
+
+/* Ensures that any loose text or notes are GOLD (#C9A060) */
+.dh-qa-app .notes,
+.dh-qa-app p,
+.dh-qa-app label {
+    font-size: 1.1em;
+    text-align: center;
+    margin-bottom: 15px;
+    color: #C9A060 !important; /* Gold */
+    font-weight: 500;
+    text-shadow: 1px 1px 0 #000; /* Light shadow for contrast on paper or black background */
+}
+
+/* --- Common Inputs --- */
+.dh-qa-app .dh-input,
+.dh-qa-app .dh-select {
+    padding: 6px;
+    font-family: inherit;
+    border: 1px solid #7a6e5d;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 4px;
+    font-size: 1.1em;
+    color: #000;
+}
+
+/* --- Buttons (Default Style) --- */
+.dh-qa-app .dh-btn {
+    background: #191919;
+    color: #C9A060;
+    border: 1px solid #C9A060;
+    padding: 8px 15px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-family: inherit;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: all 0.2s;
+}
+
+.dh-qa-app .dh-btn:hover {
+    background: #333;
+    color: #fff;
+    box-shadow: 0 0 5px #C9A060;
+}

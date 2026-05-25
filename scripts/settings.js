@@ -149,14 +149,11 @@ export function getSfxSettings() {
  */
 class DefaultMasksConfig extends foundry.applications.api.ApplicationV2 {
 
-  // Stops DEFAULT_OPTIONS merging and hook dispatch at this class boundary.
-  static BASE_APPLICATION = DefaultMasksConfig;
-
   /** @override */
   static DEFAULT_OPTIONS = {
     id:       "dhui-cfg-dialog",
     tag:      "form",
-    classes:  ["dh-unidentified", "dhui-cfg", "daggerheart", "module", "application", "dh-style"],
+    classes:  ["dh-unidentified", "dhui-cfg"],
     window:   { title: "Default Masks — DH Unidentified", resizable: false },
     position: { width: 520, height: "auto" },
   };
@@ -312,14 +309,11 @@ class DefaultMasksConfig extends foundry.applications.api.ApplicationV2 {
  */
 class ModuleGuideApp extends foundry.applications.api.ApplicationV2 {
 
-  // Stops DEFAULT_OPTIONS merging and hook dispatch at this class boundary.
-  static BASE_APPLICATION = ModuleGuideApp;
-
   /** @override */
   static DEFAULT_OPTIONS = {
     id:       "dhui-guide-dialog",
     tag:      "div",
-    classes:  ["dh-unidentified", "dhui-guide-outer", "daggerheart", "module", "application", "dh-style"],
+    classes:  ["dh-unidentified", "dhui-guide-outer"],
     window:   { title: "DH Unidentified — Module Guide", resizable: false, singleton: true },
     position: { width: 560, height: "auto" },
   };
