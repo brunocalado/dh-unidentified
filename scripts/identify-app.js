@@ -286,7 +286,11 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const maskedName = getDisplayName(item);
         const maskedImg  = getDisplayImg(item);
 
-        const params = [`trait=${trait}`, `difficulty=${difficulty}`, "grantResources=true"];
+        // grantResources=true is intentionally excluded: an identify roll is a
+        // knowledge check, not a combat action, so no Hope/Fear resources should
+        // be granted. Including it also triggers an uninitialised SYSTEM reference
+        // inside Daggerheart's /dr handler that crashes the roll.
+        const params = [`trait=${trait}`, `difficulty=${difficulty}`];
         if (advantage)    params.push("advantage=true");
         if (disadvantage) params.push("disadvantage=true");
 
@@ -302,14 +306,17 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
             itemId:  item.id,
         };
 
-        // Broadcast via world setting — all clients receive the updateSetting hook.
-        // The handler in main.js filters by targetUserId on each client.
-        // A timestamp is appended so repeated requests to the same player always
-        // trigger the hook even when the payload content is identical.
-        await game.settings.set(MODULE_ID, "identifyRequest", {
+        // Emit directly via module socket so the targeted player client receives
+        // the prompt immediately. Using socket.emit avoids the updateSetting pathway,
+        // whose hook delivers a serialised Setting document whose .value can be a
+        // raw JSON string rather than a parsed object — causing silent failures on
+        // the receiving client. The socket approach is the same pattern used for
+        // the reverse (player → GM) identifyResult message and is proven reliable.
+        console.log(`[DH Unidentified] GM emitting identifyRequest →`, { targetUserId, payload });
+        game.socket.emit(`module.${MODULE_ID}`, {
+            type: "identifyRequest",
             targetUserId,
             payload,
-            timestamp: Date.now(),
         });
 
         ui.notifications.info(`[DH Unidentified] Identify request sent to ${targetUser.name}.`);
@@ -329,7 +336,15 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
 // IDENTIFY PROMPT APP — player-facing
 // ==================================================================
 
-export class IdentifyPromptApp extends ApplicationV2 {
+/**
+ * Player-facing identify-roll prompt.
+ *
+ * Uses HandlebarsApplicationMixin so the `renderHandlebarsApplication` hook fires —
+ * Daggerheart listens on that hook to bind its click handler on `.duality-roll-button`
+ * elements via `enricherRenderSetup`. Without the mixin, the enriched button is in the
+ * DOM but the system never sees it, so even a trusted click is silently ignored.
+ */
+export class IdentifyPromptApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     /**
      * @param {object} data - Payload received from the GM's identify request.
@@ -340,147 +355,68 @@ export class IdentifyPromptApp extends ApplicationV2 {
         this.data = data;
     }
 
-    // Direct ApplicationV2 subclass — BASE_APPLICATION is appropriate here.
-    static BASE_APPLICATION = IdentifyPromptApp;
-
     static DEFAULT_OPTIONS = {
         id:       "dhui-identify-prompt",
         tag:      "div",
         classes:  ["dh-unidentified", "dhui-identify-prompt", "dhui-player-identify-dialog"],
         window:   { title: "Action Required", icon: "fas fa-eye", resizable: false },
         position: { width: 480, height: "auto" },
-        actions:  { resolveRoll: IdentifyPromptApp.prototype._onResolveRoll },
+        actions:  {},
+    };
+
+    static PARTS = {
+        form: { template: `modules/${MODULE_ID}/templates/identify-prompt.hbs` },
     };
 
     /**
-     * Returns the full prompt HTML as a string. No .hbs template is used —
-     * all data is known at construction time and the prompt is single-use.
-     * Scoped styles are embedded so the prompt is self-contained.
+     * Builds the template context. Enriches `[[/dr ...]]` through the namespaced
+     * TextEditor so Daggerheart's enricher emits a real `.duality-roll-button`
+     * with all required data-* attributes; the system's renderHandlebarsApplication
+     * hook then binds the click handler to it after this render.
      * @override
-     * @returns {Promise<string>}
+     * @param {object} _options
+     * @returns {Promise<object>}
      */
-    async _renderHTML(_context, _options) {
-        const { maskedName, maskedImg, trait, difficulty, label, command } = this.data;
+    async _prepareContext(_options) {
+        const { maskedName, maskedImg, trait, difficulty, label } = this.data;
 
         const traitLabel = trait
             ? trait.charAt(0).toUpperCase() + trait.slice(1)
             : "Duality Roll";
 
-        const difficultyHtml = difficulty
-            ? `Difficulty: <span style="color:#C9A060;font-weight:bold;">${_esc(String(difficulty))}</span><br>`
-            : "";
+        const TextEditorImpl = foundry.applications.ux.TextEditor.implementation;
+        const enrichedRoll   = await TextEditorImpl.enrichHTML(
+            `[[/dr trait=${trait} difficulty=${difficulty}]]`
+        );
 
-        return `
-        <style>
-            #dhui-identify-prompt .dhui-ip-wrapper {
-                background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
-                border: 2px solid #C9A060;
-                padding: 25px;
-                text-align: center;
-                color: #fff;
-                display: flex;
-                flex-direction: column;
-                gap: 15px;
-                align-items: center;
-            }
-            #dhui-identify-prompt .dhui-ip-title {
-                font-family: 'Aleo', serif;
-                font-size: 1.8em;
-                color: #C9A060;
-                text-transform: uppercase;
-                text-shadow: 0 0 10px #C9A060;
-                margin: 0;
-            }
-            #dhui-identify-prompt .dhui-ip-img {
-                max-width: 200px;
-                border: none;
-                filter: drop-shadow(0 0 10px rgba(201,160,96,0.5));
-            }
-            #dhui-identify-prompt .dhui-ip-details {
-                font-size: 1.1em;
-                color: #ccc;
-                margin: 0;
-                line-height: 1.6;
-            }
-            #dhui-identify-prompt .dhui-ip-roll-btn {
-                background: #C9A060 !important;
-                color: #000 !important;
-                border: 2px solid #8a6d3b !important;
-                padding: 12px 20px !important;
-                font-size: 1.4em !important;
-                font-family: 'Aleo', serif !important;
-                font-weight: bold !important;
-                text-transform: uppercase !important;
-                cursor: pointer;
-                border-radius: 4px;
-                display: inline-flex !important;
-                align-items: center;
-                justify-content: center;
-                gap: 8px;
-                box-shadow: 0 0 15px rgba(201,160,96,0.6) !important;
-                transition: transform 0.1s, box-shadow 0.2s;
-                animation: dhui-pulse-gold 2s infinite;
-                width: 100%;
-            }
-            #dhui-identify-prompt .dhui-ip-roll-btn:hover {
-                transform: scale(1.05);
-                box-shadow: 0 0 25px rgba(201,160,96,0.8) !important;
-                color: #000 !important;
-            }
-            @keyframes dhui-pulse-gold {
-                0%   { box-shadow: 0 0 0 0    rgba(201,160,96,0.4); }
-                70%  { box-shadow: 0 0 0 10px rgba(201,160,96,0);   }
-                100% { box-shadow: 0 0 0 0    rgba(201,160,96,0);   }
-            }
-        </style>
-        <div class="dhui-ip-wrapper">
-            <h1 class="dhui-ip-title">${_esc(label)}</h1>
-            <img src="${_esc(maskedImg)}" class="dhui-ip-img" alt="${_esc(maskedName)}">
-            <p class="dhui-ip-details">
-                ${difficultyHtml}
-                Check: <span style="color:#C9A060;font-weight:bold;">${_esc(traitLabel)}</span>
-            </p>
-            <div style="margin-top:10px;width:100%;">
-                <button type="button"
-                        class="dhui-ip-roll-btn"
-                        data-action="resolveRoll"
-                        data-command="${_esc(command)}">
-                    <i class="fas fa-eye"></i> ROLL TO IDENTIFY
-                </button>
-            </div>
-        </div>`;
+        return { maskedName, maskedImg, label, traitLabel, difficulty, enrichedRoll };
     }
 
     /**
-     * Replaces the application content with the rendered HTML string.
-     * Required because _renderHTML returns a raw string, not a DocumentFragment.
+     * Wires the identify-roll container after each render.
+     * Uses pointerdown (fires before click) to set _pendingIdentify so the flag is in
+     * place when Daggerheart's duality-roll-button click handler creates the ChatMessage,
+     * which is then consumed by the createChatMessage hook in main.js to emit the result.
      * @override
+     * @param {object} _context
+     * @param {object} _options
      */
-    _replaceHTML(result, content, _options) {
-        content.innerHTML = result;
-    }
+    _onRender(_context, _options) {
+        const container = this.element.querySelector(".dhui-ip-roll-container");
+        if (!container) return;
 
-    /**
-     * Stores the pending identify context, executes the /dr command, and closes the prompt.
-     * The _pendingIdentify state is consumed by the preCreateChatMessage hook in main.js
-     * to tag the resulting chat message before it is persisted to the database.
-     * TTL of 15 s prevents stale state from leaking into unrelated rolls.
-     * Triggered by the "ROLL TO IDENTIFY" button's data-action="resolveRoll".
-     * @param {PointerEvent} _event
-     * @param {HTMLButtonElement} target
-     */
-    _onResolveRoll(_event, target) {
-        const command = target.dataset.command || this.data.command;
-        if (!command) return this.close();
+        container.addEventListener("pointerdown", () => {
+            game.modules.get(MODULE_ID)._pendingIdentify = {
+                actorId: this.data.actorId,
+                itemId:  this.data.itemId,
+                expires: Date.now() + 15_000,
+            };
+        });
 
-        game.modules.get(MODULE_ID)._pendingIdentify = {
-            actorId: this.data.actorId,
-            itemId:  this.data.itemId,
-            expires: Date.now() + 15_000,
-        };
-
-        ui.chat.processMessage(command);
-        this.close();
+        // Small delay so Daggerheart's click handler starts the roll before close.
+        container.addEventListener("click", () => {
+            setTimeout(() => this.close(), 100);
+        });
     }
 }
 

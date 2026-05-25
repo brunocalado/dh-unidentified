@@ -71,15 +71,6 @@ export function registerSettings() {
     default: DEFAULT_SFX,
   });
 
-  // Broadcast channel for identify-roll requests.
-  // The GM writes here; the updateSetting hook on every client fires the player prompt.
-  game.settings.register(MODULE_ID, "identifyRequest", {
-    scope:   "world",
-    config:  false,
-    type:    Object,
-    default: {},
-  });
-
   // Usage guide button — visible to all users (restricted: false)
   game.settings.registerMenu(MODULE_ID, "moduleGuideMenu", {
     name:       "Module Guide",

@@ -1,3 +1,11 @@
+# Unreleased
+
+### [Fixed] Player identify-roll prompt not appearing after GM sends request
+
+Replaced `game.settings.set` + `updateSetting` hook with a direct `game.socket.emit` for the GM→Player identify-request path. The `updateSetting` hook delivers a Setting document whose `.value` can be a raw JSON string instead of a parsed object, causing `payload` to be `undefined` and the prompt to silently not render on the player's screen.
+
+---
+
 # 0.1.0
 
 - v14 only

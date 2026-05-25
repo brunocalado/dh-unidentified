@@ -78,55 +78,69 @@ Hooks.on("renderDaggerheartMenu", (_app, element) => {
 // ── Socket handler ────────────────────────────────────────────
 
 /**
- * Listens for changes to the "identifyRequest" world setting.
- * The GM writes the setting; Foundry broadcasts the updateSetting hook to every client.
- * Each client checks whether it is the intended target before opening the prompt.
+ * Registers the module socket listener that routes all inter-client messages.
+ *   - identifyRequest (GM → Player): GM sends the identify-roll prompt payload;
+ *     each player client checks targetUserId and opens IdentifyPromptApp if matched.
+ *   - identifyResult  (Player → GM): Player sends roll outcome; active GM
+ *     applies identification and posts the result chat message.
  * Called once in the "ready" hook.
- *
- * @listens Hooks#updateSetting
  */
 function _registerSocketHandler() {
   const SOCKET_ID = `module.${MODULE_ID}`;
 
-  // Handles socket messages from players requesting identify-roll resolution.
-  // Only the active GM processes the request — identifyItem() and ChatMessage.create()
-  // both require GM-level permissions. Uses game.socket (declared in module.json)
-  // because CONFIG.queries does not reliably pass payload data in Foundry V13.
-  game.socket.on(SOCKET_ID, async (payload) => {
-    if (payload?.type !== "identifyResult") return;
-    if (game.users.activeGM?.id !== game.user.id) return;
+  // Central socket dispatcher — all module messages arrive here.
+  // Message routing is decided by msg.type so both directions share one listener.
+  game.socket.on(SOCKET_ID, async (msg) => {
 
-    const { actorId, itemId, success } = payload;
-    const actor = game.actors.get(actorId);
-    const item  = actor?.items.get(itemId);
-    if (!item) return;
+    // ── identifyResult: Player → GM ──────────────────────────────────────────
+    // Only the active GM processes the result — identifyItem() and
+    // ChatMessage.create() both require GM-level permissions.
+    if (msg?.type === "identifyResult") {
+      if (game.users.activeGM?.id !== game.user.id) return;
 
-    if (success) await identifyItem(item);
-    await _sendIdentifyResultMessage(item, success);
+      const { actorId, itemId, success } = msg;
+      const actor = game.actors.get(actorId);
+      const item  = actor?.items.get(itemId);
+      if (!item) return;
 
-    // Rerender the actor sheet so inventory rows reflect the new identified state.
-    _rerenderSheetsForItem(item);
-  });
+      if (success) await identifyItem(item);
+      await _sendIdentifyResultMessage(item, success);
 
-  Hooks.on("updateSetting", (setting) => {
-    if (setting.key !== `${MODULE_ID}.identifyRequest`) return;
-    if (game.user.isGM) return;
+      // Rerender the actor sheet so inventory rows reflect the new identified state.
+      _rerenderSheetsForItem(item);
+      return;
+    }
 
-    const { targetUserId, payload } = setting.value ?? {};
-    if (!payload) return;
-    // Empty targetUserId means "All Players"; otherwise check for a match.
-    if (targetUserId && game.user.id !== targetUserId) return;
+    // ── identifyRequest: GM → Player ─────────────────────────────────────────
+    // The GM emits this; every client receives it but only the target player acts.
+    // Using socket.emit instead of game.settings.set avoids a pitfall where
+    // the updateSetting hook receives a serialised Setting document whose .value
+    // may be a raw JSON string rather than a parsed object, causing silent failures.
+    if (msg?.type === "identifyRequest") {
+      console.log(`[DH Unidentified] socket identifyRequest received — isGM:${game.user.isGM} userId:${game.user.id}`, msg);
+      if (game.user.isGM) return;
 
-    // Close any existing identify prompt before showing a new one.
-    foundry.applications.instances.get("dhui-identify-prompt")?.close();
+      const { targetUserId, payload } = msg;
+      if (!payload) { console.warn("[DH Unidentified] identifyRequest: payload missing"); return; }
+      // Empty targetUserId means "All Players"; otherwise only the target acts.
+      if (targetUserId && game.user.id !== targetUserId) {
+        console.log(`[DH Unidentified] identifyRequest: not for me (target:${targetUserId} me:${game.user.id})`);
+        return;
+      }
 
-    const width = 480;
-    new IdentifyPromptApp(payload, {
-      position: {
-        left: Math.max(0, (window.innerWidth  - width) / 2),
-        top:  Math.max(0, (window.innerHeight - 420)   / 2),
-      },
-    }).render({ force: true });
+      console.log("[DH Unidentified] identifyRequest: rendering IdentifyPromptApp for this player", payload);
+      // Close any existing identify prompt before showing a new one.
+      foundry.applications.instances.get("dhui-identify-prompt")?.close();
+
+      const width = 480;
+      new IdentifyPromptApp(payload, {
+        position: {
+          left: Math.max(0, (window.innerWidth  - width) / 2),
+          top:  Math.max(0, (window.innerHeight - 420)   / 2),
+        },
+      }).render({ force: true });
+      return;
+    }
   });
 
   // Expose a global shorthand so GMs can open the dialog with: Identify.open()

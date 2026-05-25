@@ -27,6 +27,7 @@
     "styles/mystify-dialog.css",
     "styles/cfg-dialog.css",
     "styles/identify-app.css",
+    "styles/identify-prompt.css",
     "styles/guide-dialog.css"
   ],
 

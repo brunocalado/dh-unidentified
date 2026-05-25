@@ -1,0 +1,88 @@
+.dh-unidentified.dhui-identify-prompt {
+    --dhui-ip-accent: #C9A060;
+    --dhui-ip-accent-border: #8a6d3b;
+
+    .dhui-ip-wrapper {
+        background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
+        border: 2px solid var(--dhui-ip-accent);
+        padding: 25px;
+        text-align: center;
+        color: var(--color-text-primary, #fff);
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .dhui-ip-title {
+        font-family: 'Aleo', serif;
+        font-size: 1.8em;
+        color: var(--dhui-ip-accent);
+        text-transform: uppercase;
+        text-shadow: 0 0 10px var(--dhui-ip-accent);
+        margin: 0;
+    }
+
+    .dhui-ip-img {
+        max-width: 200px;
+        border: none;
+        filter: drop-shadow(0 0 10px rgba(201, 160, 96, 0.5));
+    }
+
+    .dhui-ip-details {
+        font-size: 1.1em;
+        color: var(--color-text-secondary, #ccc);
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    .dhui-ip-accent {
+        color: var(--dhui-ip-accent);
+        font-weight: bold;
+    }
+
+    /* Style the system's enriched .duality-roll-button as our gold CTA.
+       Daggerheart attaches the click handler via renderHandlebarsApplication, so
+       the trusted click on this restyled button drives the system's /dr path. */
+    .dhui-ip-roll-container {
+        margin-top: 10px;
+        width: 100%;
+
+        & span {
+            display: block;
+            width: 100%;
+        }
+
+        & .duality-roll-button {
+            background: var(--dhui-ip-accent) !important;
+            color: #000 !important;
+            border: 2px solid var(--dhui-ip-accent-border) !important;
+            padding: 12px 20px !important;
+            font-size: 1.4em !important;
+            font-family: 'Aleo', serif !important;
+            font-weight: bold !important;
+            text-transform: uppercase !important;
+            cursor: pointer !important;
+            border-radius: 4px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 8px !important;
+            box-shadow: 0 0 15px rgba(201, 160, 96, 0.6) !important;
+            transition: transform 0.1s, box-shadow 0.2s !important;
+            animation: dhui-pulse-gold 2s infinite !important;
+            width: 100% !important;
+        }
+
+        & .duality-roll-button:hover {
+            transform: scale(1.05) !important;
+            box-shadow: 0 0 25px rgba(201, 160, 96, 0.8) !important;
+        }
+    }
+}
+
+@keyframes dhui-pulse-gold {
+    0%   { box-shadow: 0 0 0 0    rgba(201, 160, 96, 0.4); }
+    70%  { box-shadow: 0 0 0 10px rgba(201, 160, 96, 0);   }
+    100% { box-shadow: 0 0 0 0    rgba(201, 160, 96, 0);   }
+}
