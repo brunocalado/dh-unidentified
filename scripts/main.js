@@ -140,6 +140,41 @@ function _registerSocketHandler() {
 
 function _registerHooks() {
 
+  // ── Block right-click context menu for non-GM on unidentified items ──
+  // Registered on document in capture phase so it fires before every other handler,
+  // regardless of where DH attaches its own contextmenu listener in the DOM.
+  // stopImmediatePropagation in document-capture prevents the event from ever
+  // reaching any child element, so the DH context menu is never rendered.
+  if (!game.user.isGM) {
+    document.addEventListener("contextmenu", (event) => {
+      const li = event.target.closest("li.inventory-item");
+      if (!li) return;
+
+      // Use data-item-uuid to extract actor + item IDs without relying on the
+      // sheet element's id format (which varies by system/version).
+      // Expected format: "Actor.{actorId}.{DocumentType}.{docId}"
+      const uuid = li.dataset.itemUuid;
+      if (!uuid) return;
+
+      const parts = uuid.split(".");
+      if (parts[0] !== "Actor" || parts.length < 4) return;
+
+      // Action sub-rows (type === "Action") share the same li class but represent
+      // embedded actions inside items — they don't need to be blocked separately.
+      if (parts[2] === "Action") return;
+
+      const actor = game.actors.get(parts[1]);
+      if (!actor) return;
+
+      const item = actor.items.get(parts[3]);
+      if (!item || !isSupported(item) || !isUnidentified(item)) return;
+
+      // Block entirely — DH's context menu will never see this event.
+      event.stopImmediatePropagation();
+      event.preventDefault();
+    }, true);
+  }
+
   Hooks.on("renderHandlebarsApplication", (app, element) => {
     onRenderItemSheet(app, element);
     _handleActorSheetRender(app, element);

@@ -23,6 +23,8 @@ import { isSupported, isUnidentified, openMystifyDialog, identifyItem } from "./
  * @param {HTMLElement} element
  */
 export function patchActorSheetContextMenus(app, element) {
+  if (!game.user.isGM) return;
+
   const actor = app.document ?? app.actor ?? app.object;
   if (!(actor instanceof Actor)) return;
 
@@ -48,17 +50,7 @@ export function patchActorSheetContextMenus(app, element) {
     requestAnimationFrame(() => {
       const menu = document.querySelector("#context-menu, .context-menu");
       if (!menu) return;
-
-      if (game.user.isGM) {
-        _injectMenuEntries(menu, item, app);
-      } else {
-        // Non-GM: block the entire context menu for unidentified items.
-        // Filtering individual entries is insufficient — no option should be
-        // accessible on an item the player hasn't identified yet.
-        if (isUnidentified(item)) {
-          _closeContextMenu(menu);
-        }
-      }
+      _injectMenuEntries(menu, item, app);
     });
   }, true); // capture phase — runs before DH's listener
 }
