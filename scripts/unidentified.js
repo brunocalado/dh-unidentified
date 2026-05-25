@@ -188,7 +188,7 @@ export async function openMystifyDialog(item) {
 
   const result = await foundry.applications.api.DialogV2.wait({
     window:   { title: "Item Identity — DH Unidentified" },
-    classes:  ["dhui-mystify-outer"],
+    classes:  ["dh-unidentified", "dhui-mystify-outer"],
     position: { width: 440 },
     content,
     buttons: [

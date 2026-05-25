@@ -50,6 +50,13 @@
   --dhui-transition:   150ms ease;
 }
 
+/* ── Strip Foundry's default window-content padding from all module apps.
+   Specificity (0,3,0) beats Foundry's .application .window-content (0,2,0),
+   ensuring the override wins regardless of stylesheet load order. ── */
+.dh-unidentified.application .window-content {
+  padding: 0;
+}
+
 /* ── Controls-dropdown separator ── */
 
 .dhui-menu-sep {
