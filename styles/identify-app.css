@@ -224,8 +224,8 @@
 
   /* Selected item — teal outline matching existing .dhui-unidentified-row */
   .dhui-identify-item--selected {
-    background: #001a12 !important;
-    outline: 1px solid #20c97c;
+    background: var(--dhui-teal-row-bg) !important;
+    outline: 1px solid var(--dhui-teal);
     border-radius: 3px;
   }
 
@@ -308,7 +308,7 @@
   .dhui-identify-cb-row {
     display: flex;
     gap: 18px;
-    background: #0a0d14;
+    background: var(--dhui-bg);
     padding: 8px 10px;
     border-radius: 4px;
   }
