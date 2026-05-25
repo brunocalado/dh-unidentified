@@ -57,6 +57,18 @@
   padding: 0;
 }
 
+/* ── Remove Foundry's orange focus outline on buttons and anchor-buttons.
+   foundry2.css applies `outline + box-shadow` via `a.button:focus, button:focus`
+   (specificity 0,1,1). Scoping to .dh-unidentified raises us to (0,2,1), which
+   beats the core rule without touching anything outside this module. ── */
+.dh-unidentified a.button:focus,
+.dh-unidentified button:focus,
+.dh-unidentified a.button:focus-visible,
+.dh-unidentified button:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
 /* ── Controls-dropdown separator ── */
 
 .dhui-menu-sep {
