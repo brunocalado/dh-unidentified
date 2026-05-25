@@ -8,10 +8,10 @@
  *   Player receives payload   →  IdentifyPromptApp  →  player clicks → ui.chat.processMessage
  */
 
+import { MODULE_ID } from "./constants.js";
 import { isUnidentified, getDisplayName, getDisplayImg, _esc } from "./unidentified.js";
 
-const MODULE_ID = "dh-unidentified";
-const TEMPLATE  = `modules/${MODULE_ID}/templates/identify-request.hbs`;
+const TEMPLATE = `modules/${MODULE_ID}/templates/identify-request.hbs`;
 
 /** Trait names supported by the Daggerheart /dr command. */
 const TRAITS = ["agility", "strength", "finesse", "instinct", "presence", "knowledge"];
@@ -27,10 +27,13 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
     /** @type {string|null} ID of the user whose items are currently listed. */
     #selectedUserId = null;
 
+    // Stops DEFAULT_OPTIONS merging and hook dispatch at this class boundary.
+    static BASE_APPLICATION = IdentifyApp;
+
     static DEFAULT_OPTIONS = {
         id:       "dhui-identify-app",
         tag:      "form",
-        classes:  ["dhui-identify-app", "daggerheart", "module", "application", "dh-style"],
+        classes:  ["dh-unidentified", "dhui-identify-app", "daggerheart", "module", "application", "dh-style"],
         window:   { title: "Request Identify Roll", icon: "fas fa-eye", resizable: false, controls: [] },
         position: { width: 600, height: "auto" },
         actions:  { cancel: IdentifyApp.prototype._onCancel },
@@ -327,10 +330,13 @@ export class IdentifyPromptApp extends ApplicationV2 {
         this.data = data;
     }
 
+    // Stops DEFAULT_OPTIONS merging and hook dispatch at this class boundary.
+    static BASE_APPLICATION = IdentifyPromptApp;
+
     static DEFAULT_OPTIONS = {
         id:       "dhui-identify-prompt",
         tag:      "div",
-        classes:  ["dhui-identify-prompt", "dhui-player-identify-dialog", "daggerheart", "module", "application", "dh-style"],
+        classes:  ["dh-unidentified", "dhui-identify-prompt", "dhui-player-identify-dialog", "daggerheart", "module", "application", "dh-style"],
         window:   { title: "Action Required", icon: "fas fa-eye", resizable: false, controls: [] },
         position: { width: 480, height: "auto" },
         actions:  { resolveRoll: IdentifyPromptApp.prototype._onResolveRoll },

@@ -3,6 +3,7 @@
 // Module entry point.
 // ============================================================
 
+import { MODULE_ID }                   from "./constants.js";
 import { onRenderItemSheet }           from "./sheet-hook.js";
 import { patchActorSheetContextMenus } from "./context-menu.js";
 import {
@@ -12,8 +13,6 @@ import {
 } from "./unidentified.js";
 import { registerSettings, getSfxSettings } from "./settings.js";
 import { Identify, IdentifyPromptApp } from "./identify-app.js";
-
-const MODULE_ID = "dh-unidentified";
 
 function log(...args) { console.log(`[${MODULE_ID}]`, ...args); }
 

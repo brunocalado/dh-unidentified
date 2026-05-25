@@ -3,7 +3,8 @@
 // Module settings registration and DefaultMasksConfig dialog (ApplicationV2)
 // ============================================================
 
-const MODULE_ID    = "dh-unidentified";
+import { MODULE_ID } from "./constants.js";
+
 const SETTING_KEY  = "typeDefaults";
 const SFX_KEY      = "identifySfx";
 const TEMPLATE_PATH       = `modules/${MODULE_ID}/templates/default-masks-config.hbs`;
@@ -148,11 +149,14 @@ export function getSfxSettings() {
  */
 class DefaultMasksConfig extends foundry.applications.api.ApplicationV2 {
 
+  // Stops DEFAULT_OPTIONS merging and hook dispatch at this class boundary.
+  static BASE_APPLICATION = DefaultMasksConfig;
+
   /** @override */
   static DEFAULT_OPTIONS = {
     id:       "dhui-cfg-dialog",
     tag:      "form",
-    classes:  ["dhui-cfg", "daggerheart", "module", "application", "dh-style"],
+    classes:  ["dh-unidentified", "dhui-cfg", "daggerheart", "module", "application", "dh-style"],
     window:   { title: "Default Masks — DH Unidentified", resizable: false },
     position: { width: 520, height: "auto" },
   };
@@ -308,11 +312,14 @@ class DefaultMasksConfig extends foundry.applications.api.ApplicationV2 {
  */
 class ModuleGuideApp extends foundry.applications.api.ApplicationV2 {
 
+  // Stops DEFAULT_OPTIONS merging and hook dispatch at this class boundary.
+  static BASE_APPLICATION = ModuleGuideApp;
+
   /** @override */
   static DEFAULT_OPTIONS = {
     id:       "dhui-guide-dialog",
     tag:      "div",
-    classes:  ["dhui-guide-outer", "daggerheart", "module", "application", "dh-style"],
+    classes:  ["dh-unidentified", "dhui-guide-outer", "daggerheart", "module", "application", "dh-style"],
     window:   { title: "DH Unidentified — Module Guide", resizable: false, singleton: true },
     position: { width: 560, height: "auto" },
   };

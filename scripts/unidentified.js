@@ -8,9 +8,8 @@
 // Display helpers are the only sanctioned read path for user-facing UI.
 // ============================================================
 
+import { MODULE_ID } from "./constants.js";
 import { getDefaultsForType } from "./settings.js";
-
-const MODULE_ID = "dh-unidentified";
 
 /** Path to the Handlebars template for the Mystify dialog form. */
 const MYSTIFY_TEMPLATE = "modules/dh-unidentified/templates/mystify-dialog.hbs";

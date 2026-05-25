@@ -32,6 +32,7 @@
   --dhui-teal-muted:   #60c8a0;
   --dhui-teal-bg:      #003a2a;
   --dhui-teal-bg-2:    #002a1e;
+  --dhui-teal-row-bg:  #001a12;  /* dark teal tint — unidentified row and selected item bg */
 
   /* ── Purple (player-specific) ── */
   --dhui-purple:       #7755cc;
