@@ -19,8 +19,8 @@ import { isSupported, isUnidentified, openMystifyDialog, identifyItem } from "./
  * wait one microtask for the DH ContextMenu to render its DOM, then
  * inject our entries into the rendered .context-menu element.
  *
- * @param {ApplicationV2} app
- * @param {HTMLElement}   element
+ * @param {foundry.applications.api.ApplicationV2} app
+ * @param {HTMLElement} element
  */
 export function patchActorSheetContextMenus(app, element) {
   if (!game.user.isGM) return;
@@ -28,14 +28,12 @@ export function patchActorSheetContextMenus(app, element) {
   const actor = app.document ?? app.actor ?? app.object;
   if (!(actor instanceof Actor)) return;
 
-  // Only character sheets have the inventory
   if (actor.type !== "character") return;
 
-  // Attach to the items-list container (delegated)
   const list = element.querySelector(".items-section, .items-list, section.inventory");
   if (!list) return;
 
-  // Guard: only attach once
+  // Guard: only attach once per rendered instance
   if (list.dataset.dhuiPatched) return;
   list.dataset.dhuiPatched = "1";
 
@@ -56,12 +54,9 @@ export function patchActorSheetContextMenus(app, element) {
       if (game.user.isGM) {
         _injectMenuEntries(menu, item, app);
       } else {
-        // Player: remove "Edit" and any other entries that open the item sheet
-        // Context menu entries are <li class="context-item"> with text content
+        // Player: remove context menu entries that would reveal item identity or allow edits
         menu.querySelectorAll("li.context-item").forEach(li => {
           const text = li.textContent?.trim().toLowerCase() ?? "";
-          // Block: Edit, Use Item, Send to Chat — anything that reveals data
-          // Keep: nothing (overlay already blocks the sheet, but belt+suspenders)
           if (text.includes("edit") || text.includes("use item") || text.includes("send to chat")) {
             li.style.setProperty("display", "none", "important");
           }
@@ -71,11 +66,18 @@ export function patchActorSheetContextMenus(app, element) {
   }, true); // capture phase — runs before DH's listener
 }
 
+/**
+ * Injects Mystify or Identify context menu entries for the GM.
+ * After identify/mystify, forces a re-render of the actor sheet so inventory
+ * rows reflect the new flag state without requiring a manual page refresh.
+ * @param {HTMLElement} menu
+ * @param {Item} item
+ * @param {foundry.applications.api.ApplicationV2} app
+ */
 function _injectMenuEntries(menu, item, app) {
   // Avoid duplicate injection
   if (menu.querySelector(".dhui-ctx-entry")) return;
 
-  // ── Separator ──
   const sep = document.createElement("li");
   sep.className = "dhui-ctx-entry dhui-ctx-sep";
   sep.setAttribute("role", "separator");
@@ -84,12 +86,13 @@ function _injectMenuEntries(menu, item, app) {
   if (!isUnidentified(item)) {
     // ── Mystify ──
     // Only shown when the item is NOT mystified — prevents double-mystify which
-    // would corrupt realName/realImg by overwriting them with the masked values.
+    // would corrupt the masked values by overwriting them with themselves.
     const entryMystify = _makeEntry(
       "fas fa-eye-slash", "Mystify Item",
       async () => {
         _closeContextMenu(menu);
         await openMystifyDialog(item);
+        // Force rerender so inventory rows show masked identity immediately.
         app.render({ force: true });
       }
     );
@@ -101,12 +104,22 @@ function _injectMenuEntries(menu, item, app) {
       async () => {
         _closeContextMenu(menu);
         await identifyItem(item);
+        // Force rerender so inventory rows show real identity immediately.
+        // Under the non-destructive model, a rerender is required because the
+        // display layer (not document mutation) drives what is visible.
+        app.render({ force: true });
       }
     );
     menu.appendChild(entryIdentify);
   }
 }
 
+/**
+ * @param {string} iconClass
+ * @param {string} label
+ * @param {Function} onClick
+ * @returns {HTMLLIElement}
+ */
 function _makeEntry(iconClass, label, onClick) {
   const li = document.createElement("li");
   li.className = "context-item dhui-ctx-entry";
@@ -119,8 +132,11 @@ function _makeEntry(iconClass, label, onClick) {
   return li;
 }
 
+/**
+ * Closes the context menu by triggering a mouseleave event and removing the element.
+ * @param {HTMLElement} menu
+ */
 function _closeContextMenu(menu) {
-  // Trigger a click outside to let Foundry close the menu cleanly
   menu.dispatchEvent(new MouseEvent("mouseleave", { bubbles: true }));
   menu.remove();
 }

@@ -8,7 +8,7 @@
  *   Player receives payload   →  IdentifyPromptApp  →  player clicks → ui.chat.processMessage
  */
 
-import { isUnidentified, getFlags, _esc } from "./unidentified.js";
+import { isUnidentified, getDisplayName, getDisplayImg, _esc } from "./unidentified.js";
 
 const MODULE_ID = "dh-unidentified";
 const TEMPLATE  = `modules/${MODULE_ID}/templates/identify-request.hbs`;
@@ -144,17 +144,22 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         for (const item of items) {
-            const flags    = getFlags(item);
-            const realName = flags.realName ?? item.name;
-            const realImg  = flags.realImg  ?? item.img;
-            const realDesc = flags.realDescription ?? item.system?.description ?? item.system?.details?.description ?? "";
+            // Under the non-destructive model, real data lives in the document fields.
+            // Display helpers provide audience-appropriate values (masked when unidentified).
+            const realName = item.name;
+            const realImg  = item.img;
+            const realDesc = item.system?.description ?? item.system?.details?.description ?? "";
+
+            // Masked values for the list display — what the player would see
+            const maskedName = getDisplayName(item);
+            const maskedImg  = getDisplayImg(item);
 
             const li = document.createElement("li");
             li.className      = "dhui-identify-item";
             li.dataset.itemId = item.id;
             li.innerHTML = `
-                <img src="${_esc(flags.maskedImg ?? item.img)}" class="dhui-identify-item__img" alt="">
-                <span class="dhui-identify-item__name">${_esc(flags.maskedName ?? item.name)}</span>
+                <img src="${_esc(maskedImg)}" class="dhui-identify-item__img" alt="">
+                <span class="dhui-identify-item__name">${_esc(maskedName)}</span>
                 <div class="dhui-identify-item__actions">
                     <button type="button"
                             class="dhui-identify-item__peek-btn"
@@ -262,19 +267,22 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
             return;
         }
 
-        const flags = getFlags(item);
-
         // Build the /dr command the player will execute on their end.
+        // Use display helpers so the player prompt shows masked presentation values,
+        // not the real item identity that would leak the answer before identification.
+        const maskedName = getDisplayName(item);
+        const maskedImg  = getDisplayImg(item);
+
         const params = [`trait=${trait}`, `difficulty=${difficulty}`, "grantResources=true"];
         if (advantage)    params.push("advantage=true");
         if (disadvantage) params.push("disadvantage=true");
 
         const payload = {
-            maskedName: flags.maskedName ?? item.name,
-            maskedImg:  flags.maskedImg  ?? item.img,
+            maskedName,
+            maskedImg,
             trait,
             difficulty,
-            label:   `Identify: ${flags.maskedName ?? item.name}`,
+            label:   `Identify: ${maskedName}`,
             command: "/dr " + params.join(" "),
             // Required by the preCreateChatMessage hook to tag the roll and trigger identification.
             actorId: actor.id,

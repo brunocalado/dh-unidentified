@@ -93,7 +93,7 @@ export function registerSettings() {
   game.settings.registerMenu(MODULE_ID, "typeDefaultsMenu", {
     name:       "Default Masks",
     label:      "Configure Default Masks",
-    hint:       "Set default masked name, description, and icon per item type.",
+    hint:       "Set default masked name, description, and icon per item type. These are display-only presentation values — the item's real data is never modified when mystifying.",
     icon:       "fas fa-eye-slash",
     type:       DefaultMasksConfig,
     restricted: true,

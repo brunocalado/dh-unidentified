@@ -5,7 +5,11 @@
 
 import { onRenderItemSheet }           from "./sheet-hook.js";
 import { patchActorSheetContextMenus } from "./context-menu.js";
-import { isUnidentified, isSupported, getFlags, identifyItem, openMystifyDialog, _esc } from "./unidentified.js";
+import {
+  isUnidentified, isSupported, getFlags, identifyItem, openMystifyDialog, _esc,
+  getDisplayName, getDisplayImg,
+  isLegacyDestructiveState, buildLegacyMigrationUpdate,
+} from "./unidentified.js";
 import { registerSettings, getSfxSettings } from "./settings.js";
 import { Identify, IdentifyPromptApp } from "./identify-app.js";
 
@@ -22,11 +26,15 @@ Hooks.once("init", () => {
 
 // ── ready ─────────────────────────────────────────────────────
 
-Hooks.once("ready", () => {
+Hooks.once("ready", async () => {
   log("ready");
   _registerHooks();
   _registerSocketHandler();
-  game.modules.get(MODULE_ID).api = { isUnidentified, getFlags, Identify };
+  game.modules.get(MODULE_ID).api = { isUnidentified, getFlags, Identify, getDisplayName, getDisplayImg };
+
+  // One-time GM-only migration: restore items written by the old destructive model.
+  // This pass is idempotent — isLegacyDestructiveState returns false after first run.
+  if (game.user.isGM) await _runLegacyMigration();
 });
 
 // ── Daggerheart Menu button ───────────────────────────────────
@@ -96,6 +104,9 @@ function _registerSocketHandler() {
 
     if (success) await identifyItem(item);
     await _sendIdentifyResultMessage(item, success);
+
+    // Rerender the actor sheet so inventory rows reflect the new identified state.
+    _rerenderSheetsForItem(item);
   });
 
   Hooks.on("updateSetting", (setting) => {
@@ -138,8 +149,6 @@ function _registerHooks() {
   // getHeaderControlsItemSheetV2 fires for every class that extends
   // ItemSheetV2, including all Daggerheart item sheets (ArmorSheet,
   // WeaponSheet, ConsumableSheet, LootSheet, etc.).
-  // controls.push() appends entries to the native header control list;
-  // Foundry builds the button and routes the click to app.options.actions[action].
   Hooks.on("getHeaderControlsItemSheetV2", (app, controls) => {
     const item = app.document ?? app.item ?? app.object;
     if (!(item instanceof Item)) return;
@@ -156,6 +165,7 @@ function _registerHooks() {
       app.options.actions["dhuiidentify"] = async () => {
         await identifyItem(item);
         app.render({ force: true });
+        _rerenderSheetsForItem(item);
       };
     } else {
       controls.push({
@@ -167,11 +177,14 @@ function _registerHooks() {
       app.options.actions["dhuimystify"] = async () => {
         await openMystifyDialog(item);
         app.render({ force: true });
+        _rerenderSheetsForItem(item);
       };
     }
   });
 
-  // Data-layer guard: block non-GM edits on unidentified items
+  // Data-layer guard: block non-GM edits on unidentified items.
+  // Because real data lives in the document, this guard is still needed to
+  // prevent players from editing (and inadvertently seeing) canonical fields.
   Hooks.on("preUpdateItem", (item, changes, _options, _userId) => {
     if (game.user.isGM) return true;
     if (!isUnidentified(item)) return true;
@@ -187,9 +200,6 @@ function _registerHooks() {
 
   // Detects the /dr roll result on the player's own client (the only client with
   // _pendingIdentify set) and delegates identification to the GM via module socket.
-  // Using createChatMessage instead of preCreateChatMessage avoids the race where
-  // Daggerheart creates preliminary messages before the roll result, which would
-  // consume _pendingIdentify too early and leave the actual result unhandled.
   Hooks.on("createChatMessage", (message) => {
     const pending = game.modules.get(MODULE_ID)._pendingIdentify;
     if (!pending || Date.now() > pending.expires) return;
@@ -216,10 +226,8 @@ function _registerHooks() {
     });
   });
 
-  // Bloqueia uso de actions em itens não identificados (player only).
-  // daggerheart.preUseAction dispara para Generic, Attack, Damage, Macro
-  // e qualquer action futura — um único hook cobre tudo.
-  // DHEffectAction.parent aponta para o Item pai.
+  // Blocks usage of actions on unidentified items (player only).
+  // daggerheart.preUseAction fires for Generic, Attack, Damage, Macro, and any future action.
   Hooks.on("daggerheart.preUseAction", (action, _options) => {
     if (game.user.isGM) return true;
     const item = action.parent;
@@ -229,6 +237,72 @@ function _registerHooks() {
   });
 
   log("hooks registered.");
+}
+
+// ── Legacy migration ──────────────────────────────────────────
+
+/**
+ * One-time world migration pass for the active GM.
+ * Detects items written by the old destructive model (pre-0.0.3) that have
+ * their real name/img/description stored in backup flags, restores them, and
+ * removes the obsolete backup flags. Batches updates per collection to comply
+ * with the module's no-sequential-update rule.
+ *
+ * Called from Hooks.once("ready").
+ * @returns {Promise<void>}
+ */
+async function _runLegacyMigration() {
+  // ── World-level items ──
+  const worldUpdates = game.items.contents
+    .filter(item => isLegacyDestructiveState(item))
+    .map(item => buildLegacyMigrationUpdate(item));
+
+  if (worldUpdates.length) {
+    await Item.implementation.updateDocuments(worldUpdates);
+  }
+
+  // ── Actor-embedded items — grouped by parent actor for batch updates ──
+  /** @type {Map<string, object[]>} actorId → array of item update objects */
+  const actorItemUpdates = new Map();
+
+  for (const actor of game.actors.contents) {
+    for (const item of actor.items.contents) {
+      if (!isLegacyDestructiveState(item)) continue;
+      if (!actorItemUpdates.has(actor.id)) actorItemUpdates.set(actor.id, []);
+      actorItemUpdates.get(actor.id).push(buildLegacyMigrationUpdate(item));
+    }
+  }
+
+  // Each batch targets one actor, satisfying the same-collection batch requirement.
+  for (const [actorId, updates] of actorItemUpdates) {
+    const actor = game.actors.get(actorId);
+    if (actor) await Item.implementation.updateDocuments(updates, { parent: actor });
+  }
+
+  const total = worldUpdates.length + [...actorItemUpdates.values()].reduce((n, arr) => n + arr.length, 0);
+  if (total > 0) {
+    log(`Legacy migration complete: ${total} item(s) restored to non-destructive model.`);
+    ui.notifications.info(`[DH Unidentified] Migrated ${total} item(s) from the old destructive model. Real item data has been restored.`);
+  }
+}
+
+// ── Rerender helper ───────────────────────────────────────────
+
+/**
+ * Forces a rerender of any open actor sheet that owns this item and any open
+ * item sheet for the item itself. Called after identify/mystify so the display
+ * layer reflects the new flag state immediately without requiring a manual refresh.
+ * @param {Item} item
+ * @returns {void}
+ */
+function _rerenderSheetsForItem(item) {
+  // Rerender the item's own sheet if it is open
+  if (item.sheet?.rendered) item.sheet.render({ force: true });
+
+  // Rerender the owning actor's sheet so inventory rows update
+  if (item.parent instanceof Actor && item.parent.sheet?.rendered) {
+    item.parent.sheet.render({ force: true });
+  }
 }
 
 // ── Actor sheet ───────────────────────────────────────────────
@@ -243,7 +317,7 @@ function _handleActorSheetRender(app, element) {
   // Teal outline on unidentified rows — visible to BOTH GM and player
   _markUnidentifiedRows(actor, element);
 
-  // Hide mechanical details — player only
+  // Hide mechanical details and mask identity — player only
   if (!game.user.isGM) {
     _hideUnidentifiedDetails(actor, element);
   }
@@ -251,6 +325,12 @@ function _handleActorSheetRender(app, element) {
 
 // ── Teal outline (GM + player) ────────────────────────────────
 
+/**
+ * Adds the dhui-unidentified-row CSS class to inventory list items for
+ * unidentified items. Pure visual cue; no data reads required.
+ * @param {Actor}       actor
+ * @param {HTMLElement} element
+ */
 function _markUnidentifiedRows(actor, element) {
   element.querySelectorAll("li.inventory-item[data-item-id]").forEach(li => {
     const item = actor.items.get(li.dataset.itemId);
@@ -259,14 +339,50 @@ function _markUnidentifiedRows(actor, element) {
   });
 }
 
-// ── Hide details (player only) ────────────────────────────────
+// ── Hide details and mask identity (player only) ──────────────
 
+/**
+ * For each unidentified item in the actor's inventory:
+ *  - Replaces the visible name text and icon with masked equivalents,
+ *    because real data now lives in item.name/img (document fields), not in
+ *    masked flags. Without this replacement, players would see the real item
+ *    identity in the inventory row.
+ *  - Hides mechanical detail sections (description, tags, actions, expand icon).
+ *
+ * @param {Actor}       actor
+ * @param {HTMLElement} element
+ */
 function _hideUnidentifiedDetails(actor, element) {
   element.querySelectorAll("li.inventory-item[data-item-id]").forEach(li => {
     const item = actor.items.get(li.dataset.itemId);
     if (!item || !isUnidentified(item)) return;
 
-    // Expandable description row ("Heavy: -1 to Evasion", invetory-description)
+    const maskedName = getDisplayName(item);
+    const maskedImg  = getDisplayImg(item);
+
+    // ── Replace identity cues with masked equivalents ──
+    // Because real data is now preserved in item.name/img, we must actively
+    // substitute masked presentation values in every visible identity element.
+
+    // Item icon (may be inside .inventory-item-header or directly in the li)
+    li.querySelectorAll("img").forEach(img => {
+      if (!img.dataset.dhuiOrigSrc) img.dataset.dhuiOrigSrc = img.src;
+      img.src = maskedImg;
+    });
+
+    // Item name — target common DH inventory row name selectors
+    const nameEl = li.querySelector(
+      ".item-name, .inventory-item-name, [class*='item-name'], " +
+      ".inventory-item-header span, .inventory-item-header a"
+    );
+    if (nameEl) {
+      if (!nameEl.dataset.dhuiOrigText) nameEl.dataset.dhuiOrigText = nameEl.textContent;
+      nameEl.textContent = maskedName;
+    }
+
+    // ── Hide mechanical details ──
+
+    // Expandable description row
     li.querySelectorAll(".inventory-item-content, .invetory-description").forEach(el => {
       el.style.setProperty("display", "none", "important");
     });
@@ -282,14 +398,11 @@ function _hideUnidentifiedDetails(actor, element) {
     });
 
     // "More Options" three-dots button — opens context menu with Edit
-    // Selector confirmed from template inventory-item-V2.hbs line 127
     li.querySelectorAll("[data-action='triggerContextMenu']").forEach(el => {
       el.style.setProperty("display", "none", "important");
     });
 
-    // Esconde o container de actions da linha de inventário.
-    // .item-buttons contém N botões (Generic, Attack, Damage, Macro...).
-    // Esconder o container cobre qualquer quantidade de actions presentes.
+    // Action buttons (Generic, Attack, Damage, Macro...)
     li.querySelectorAll(".item-buttons").forEach(el => {
       el.style.setProperty("display", "none", "important");
     });
@@ -304,20 +417,27 @@ function _hideUnidentifiedDetails(actor, element) {
 
 /**
  * Creates a public chat message announcing the outcome of an identify roll.
- * Called by the GM's socket handler after identification is processed.
- * On success, identifyItem() has already restored item.name and item.img to
- * their real values, so the card always shows the most relevant display state.
+ * Uses display helpers to derive audience-appropriate name and image:
+ *   - On success: identifyItem() has already set identified=true, so
+ *     getDisplayName returns item.name (real). Real identity is intentionally revealed.
+ *   - On failure: identified=false remains, so getDisplayName returns the masked alias.
+ *     True identity is not leaked to chat.
  *
- * @param {Item}    item    - The item (post-update on success, still masked on failure)
+ * @param {Item}    item    - The item (post-update on success, still unidentified on failure)
  * @param {boolean} success - Whether the identification roll succeeded
  * @returns {Promise<void>}
  */
 async function _sendIdentifyResultMessage(item, success) {
+  // After a successful identifyItem(), identified=true → getDisplayName returns item.name.
+  // After a failed roll, identified=false → getDisplayName returns the masked alias.
+  const displayName = getDisplayName(item);
+  const displayImg  = getDisplayImg(item);
+
   const borderColor = success ? "#C9A060" : "#666666";
   const headerText  = success ? "Item Identified!" : "Identification Failed";
   const bodyText    = success
-    ? `<em>${_esc(item.name)}</em> has been identified — its true nature is now revealed.`
-    : `The nature of <em>${_esc(item.name)}</em> remains hidden.`;
+    ? `<em>${_esc(displayName)}</em> has been identified — its true nature is now revealed.`
+    : `The nature of <em>${_esc(displayName)}</em> remains hidden.`;
 
   const content = `
   <div style="border:2px solid ${borderColor};border-radius:8px;overflow:hidden;">
@@ -327,7 +447,7 @@ async function _sendIdentifyResultMessage(item, success) {
       </h3>
     </header>
     <div style="background:#111;padding:14px 16px;display:flex;gap:14px;align-items:center;">
-      <img src="${_esc(item.img)}" style="width:54px;height:54px;object-fit:contain;border:none;flex-shrink:0;">
+      <img src="${_esc(displayImg)}" style="width:54px;height:54px;object-fit:contain;border:none;flex-shrink:0;">
       <span style="color:#ccc;font-family:'Lato',sans-serif;font-size:1em;line-height:1.5;">
         ${bodyText}
       </span>
@@ -342,30 +462,26 @@ async function _sendIdentifyResultMessage(item, success) {
   });
 }
 
-// ── Sidebar tooltip: real name for GM ────────────────────────
+// ── Sidebar: unidentified cue in Item Directory ───────────────
 //
-// The ItemDirectory sidebar uses data-entry-id (confirmed from
-// actor-document-partial.hbs). The name lives inside a.entry-name > span.
-// We use mouseenter to activate the Foundry tooltip manually via game.tooltip,
-// which is more reliable than data-tooltip in the sidebar context.
+// Under the non-destructive model, item.name is always the real name.
+// For GMs: show real name in the sidebar (as document data) + tooltip showing the masked alias.
+// For players: replace the displayed name with the masked alias to prevent leaking real identity.
 
 Hooks.on("renderItemDirectory", (_app, html) => {
-  if (!game.user.isGM) return;
-
-  // V13: html may be HTMLElement or jQuery
+  // V14: html may be HTMLElement or jQuery
   const root = html instanceof HTMLElement ? html : html[0];
   if (!root) return;
 
-  // Foundry core ItemDirectory uses data-entry-id on the li
   root.querySelectorAll("li.directory-item[data-entry-id]").forEach(li => {
     const itemId = li.dataset.entryId;
     const item   = game.items.get(itemId);
     if (!item || !isUnidentified(item)) return;
 
-    const flags    = getFlags(item);
-    const realName = flags.realName ?? "?";
+    const flags      = getFlags(item);
+    const maskedName = flags.maskedName ?? "?";
 
-    // Add teal dot visual cue before the item name
+    // Add teal dot visual cue for everyone who can see this entry
     const nameEl = li.querySelector("a.entry-name span, .document-name");
     if (nameEl && !li.querySelector(".dhui-sidebar-dot")) {
       const dot = document.createElement("i");
@@ -373,19 +489,29 @@ Hooks.on("renderItemDirectory", (_app, html) => {
       li.querySelector("a.entry-name")?.insertBefore(dot, nameEl);
     }
 
-    // Use mouseenter + game.tooltip.activate for reliable tooltip display
-    // data-tooltip alone may not fire in sidebar due to DhTooltipManager
-    if (!li.dataset.dhuiTooltipBound) {
-      li.dataset.dhuiTooltipBound = "1";
-      li.addEventListener("mouseenter", () => {
-        game.tooltip.activate(li, {
-          text: `Real name: "${realName}"`,
-          direction: "RIGHT",
+    if (game.user.isGM) {
+      // GM sees real name (item.name) but gets a tooltip showing the masked alias.
+      // "Real name" tooltip label is gone — item.name IS the real name now.
+      if (!li.dataset.dhuiTooltipBound) {
+        li.dataset.dhuiTooltipBound = "1";
+        li.addEventListener("mouseenter", () => {
+          game.tooltip.activate(li, {
+            text: `Masked as: "${maskedName}"`,
+            direction: "RIGHT",
+          });
         });
-      });
-      li.addEventListener("mouseleave", () => {
-        game.tooltip.deactivate();
-      });
+        li.addEventListener("mouseleave", () => {
+          game.tooltip.deactivate();
+        });
+      }
+    } else {
+      // Non-GM: replace the visible name text with the masked alias so real identity
+      // is not leaked through the sidebar. This mirrors the inventory-row masking in
+      // _hideUnidentifiedDetails for actor sheets.
+      if (nameEl && !nameEl.dataset.dhuiMasked) {
+        nameEl.dataset.dhuiMasked = "1";
+        nameEl.textContent = maskedName;
+      }
     }
   });
 });
