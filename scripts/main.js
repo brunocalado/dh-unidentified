@@ -7,7 +7,7 @@ import { onRenderItemSheet }           from "./sheet-hook.js";
 import { patchActorSheetContextMenus } from "./context-menu.js";
 import {
   isUnidentified, isSupported, getFlags, identifyItem, openMystifyDialog, _esc,
-  getDisplayName, getDisplayImg,
+  getDisplayName, getDisplayImg, getDisplayDescription,
   isLegacyDestructiveState, buildLegacyMigrationUpdate,
 } from "./unidentified.js";
 import { registerSettings, getSfxSettings } from "./settings.js";
@@ -370,6 +370,30 @@ function _hideUnidentifiedDetails(actor, element) {
     li.querySelectorAll("img").forEach(img => {
       if (!img.dataset.dhuiOrigSrc) img.dataset.dhuiOrigSrc = img.src;
       img.src = maskedImg;
+
+      // Intercept the icon tooltip so real item details are never revealed on hover.
+      // Strips data-tooltip* attributes (used by Foundry's TooltipManager) from the img
+      // and its immediate wrapper, then uses capture-phase stopImmediatePropagation to
+      // block any system-level mouseenter listener registered during sheet render.
+      if (!img.dataset.dhuiTooltipBound) {
+        img.dataset.dhuiTooltipBound = "1";
+
+        [img, img.parentElement].filter(Boolean).forEach(el => {
+          if (el === li) return; // never strip from the row element itself
+          for (const attr of [...el.attributes]) {
+            if (attr.name.startsWith("data-tooltip")) el.removeAttribute(attr.name);
+          }
+        });
+
+        const maskedDesc = getDisplayDescription(item);
+        img.addEventListener("mouseenter", (e) => {
+          e.stopImmediatePropagation();
+          if (maskedDesc) game.tooltip.activate(img, { text: maskedDesc, direction: "RIGHT" });
+        }, true);
+        img.addEventListener("mouseleave", () => {
+          game.tooltip.deactivate();
+        }, true);
+      }
     });
 
     // Item name — target common DH inventory row name selectors
@@ -406,6 +430,16 @@ function _hideUnidentifiedDetails(actor, element) {
 
     // Action buttons (Generic, Attack, Damage, Macro...)
     li.querySelectorAll(".item-buttons").forEach(el => {
+      el.style.setProperty("display", "none", "important");
+    });
+
+    // Equip / unequip toggle (weapon and armor share the same data-action)
+    li.querySelectorAll("[data-action='toggleEquipItem']").forEach(el => {
+      el.style.setProperty("display", "none", "important");
+    });
+
+    // Send to Chat button
+    li.querySelectorAll("[data-action='toChat']").forEach(el => {
       el.style.setProperty("display", "none", "important");
     });
 

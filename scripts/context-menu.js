@@ -23,8 +23,6 @@ import { isSupported, isUnidentified, openMystifyDialog, identifyItem } from "./
  * @param {HTMLElement} element
  */
 export function patchActorSheetContextMenus(app, element) {
-  if (!game.user.isGM) return;
-
   const actor = app.document ?? app.actor ?? app.object;
   if (!(actor instanceof Actor)) return;
 
@@ -54,13 +52,12 @@ export function patchActorSheetContextMenus(app, element) {
       if (game.user.isGM) {
         _injectMenuEntries(menu, item, app);
       } else {
-        // Player: remove context menu entries that would reveal item identity or allow edits
-        menu.querySelectorAll("li.context-item").forEach(li => {
-          const text = li.textContent?.trim().toLowerCase() ?? "";
-          if (text.includes("edit") || text.includes("use item") || text.includes("send to chat")) {
-            li.style.setProperty("display", "none", "important");
-          }
-        });
+        // Non-GM: block the entire context menu for unidentified items.
+        // Filtering individual entries is insufficient — no option should be
+        // accessible on an item the player hasn't identified yet.
+        if (isUnidentified(item)) {
+          _closeContextMenu(menu);
+        }
       }
     });
   }, true); // capture phase — runs before DH's listener
