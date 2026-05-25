@@ -5,7 +5,7 @@
 
 import { onRenderItemSheet }           from "./sheet-hook.js";
 import { patchActorSheetContextMenus } from "./context-menu.js";
-import { isUnidentified, getFlags, identifyItem, _esc } from "./unidentified.js";
+import { isUnidentified, isSupported, getFlags, identifyItem, openMystifyDialog, _esc } from "./unidentified.js";
 import { registerSettings, getSfxSettings } from "./settings.js";
 import { Identify, IdentifyPromptApp } from "./identify-app.js";
 
@@ -132,6 +132,43 @@ function _registerHooks() {
   Hooks.on("renderHandlebarsApplication", (app, element) => {
     onRenderItemSheet(app, element);
     _handleActorSheetRender(app, element);
+  });
+
+  // ── Header ⋮ menu: Mystify / Identify buttons on item sheets ──
+  // getHeaderControlsItemSheetV2 fires for every class that extends
+  // ItemSheetV2, including all Daggerheart item sheets (ArmorSheet,
+  // WeaponSheet, ConsumableSheet, LootSheet, etc.).
+  // controls.push() appends entries to the native header control list;
+  // Foundry builds the button and routes the click to app.options.actions[action].
+  Hooks.on("getHeaderControlsItemSheetV2", (app, controls) => {
+    const item = app.document ?? app.item ?? app.object;
+    if (!(item instanceof Item)) return;
+    if (!isSupported(item)) return;
+    if (!game.user.isGM) return;
+
+    if (isUnidentified(item)) {
+      controls.push({
+        icon: "fa-solid fa-eye",
+        label: "Identify Item",
+        action: "dhuiidentify",
+      });
+      app.options.actions ??= {};
+      app.options.actions["dhuiidentify"] = async () => {
+        await identifyItem(item);
+        app.render({ force: true });
+      };
+    } else {
+      controls.push({
+        icon: "fa-solid fa-eye-slash",
+        label: "Mystify Item",
+        action: "dhuimystify",
+      });
+      app.options.actions ??= {};
+      app.options.actions["dhuimystify"] = async () => {
+        await openMystifyDialog(item);
+        app.render({ force: true });
+      };
+    }
   });
 
   // Data-layer guard: block non-GM edits on unidentified items

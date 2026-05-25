@@ -63,9 +63,11 @@ export function onRenderItemSheet(app, element) {
   const frame = app.element;
   if (!frame) return;
 
-  // Guard: only act when the frame is fully in the DOM
+  // Look up the menu node but do NOT return early if it is absent.
+  // The banner, view toggle, and player-lock logic must still apply even
+  // when the header menu DOM node has not yet been constructed by Foundry
+  // (it is built lazily as a popover, not present at render time).
   const controlsMenu = frame.querySelector("menu.controls-dropdown");
-  if (!controlsMenu) return;
 
   // Clean up all previously injected elements before re-rendering
   // This prevents stale banners, toggles, and menu entries from persisting
@@ -119,31 +121,20 @@ function _injectGMMystifyEntry(controlsMenu, app, item) {
 }
 
 /**
- * Inject GM entries into menu.controls-dropdown.
- * The menu already contains li.header-control items ("Configure Sheet", etc).
- * We append a separator + our entries in the same format.
+ * No-op: header menu entries are now provided natively via the
+ * getHeaderControlsItemSheetV2 hook registered in scripts/main.js.
+ * DOM injection here is no longer needed and would create duplicate
+ * entries conflicting with the native menu.
+ *
+ * @param {HTMLElement} _controlsMenu - Unused.
+ * @param {ApplicationV2} _app        - Unused.
+ * @param {Item} _item                - Unused.
+ * @param {object} _opts              - Unused.
  */
-function _injectGMMenuEntries(controlsMenu, app, item, { identified }) {
-  // Separator
-  const sep = document.createElement("li");
-  sep.className = "dhui-menu-sep";
-  sep.setAttribute("role", "separator");
-  controlsMenu.appendChild(sep);
-
-  if (!identified) {
-    // Identify only — Re-mystify is intentionally absent to prevent double-mystify
-    // which would corrupt realName/realImg by overwriting them with the masked values.
-    controlsMenu.appendChild(_makeMenuEntry(
-      "fas fa-eye", "Identify Item",
-      async () => { await identifyItem(item); app.render({ force: true }); }
-    ));
-  } else {
-    // Mystify
-    controlsMenu.appendChild(_makeMenuEntry(
-      "fas fa-eye-slash", "Mystify Item",
-      async () => { await openMystifyDialog(item); app.render({ force: true }); }
-    ));
-  }
+function _injectGMMenuEntries(_controlsMenu, _app, _item, _opts) {
+  // Header menu entries are now provided natively via getHeaderControlsItemSheetV2
+  // in scripts/main.js. DOM injection here is no longer needed and would create
+  // duplicate entries conflicting with the native menu.
 }
 
 // ── GM View Toggle ────────────────────────────────────────────
