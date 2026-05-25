@@ -7,12 +7,12 @@
 // Masked presentation values come from module flags via display helpers.
 //
 // GM view (item unidentified):
-//   - Banner inside .window-content showing the masked alias and a "(use ⋮ to identify)" hint
-//   - Eye-toggle button in .window-header to compare mystified vs. real view
-//   - Real item data panel (item.name / item.img / real description from document)
+//   - Banner inside .window-content showing the masked alias
+//   - Eye button in .window-header → click to identify item
 //
 // GM view (item identified):
-//   - Small "Mystify" shortcut in the ⋮ header menu (via getHeaderControlsItemSheetV2)
+//   - Eye-slash button in .window-header → click to open mystify dialog
+//   - Small "Mystify" shortcut also in the ⋮ header menu (via getHeaderControlsItemSheetV2)
 //
 // Player view (item unidentified):
 //   - Purple "Unidentified" badge inside .window-content
@@ -38,10 +38,8 @@ import { isUnidentified, isSupported, openMystifyDialog, identifyItem, getFlags,
 function _cleanupInjected(frame) {
   frame.querySelectorAll(".dhui-gm-banner").forEach(el => el.remove());
   frame.querySelectorAll(".dhui-player-badge").forEach(el => el.remove());
-  frame.querySelectorAll(".dhui-view-toggle").forEach(el => el.remove());
-  frame.querySelectorAll(".dhui-mystified-view").forEach(el => el.remove());
+  frame.querySelectorAll(".dhui-state-toggle").forEach(el => el.remove());
   frame.querySelectorAll(".dhui-menu-sep, .dhui-menu-entry").forEach(el => el.remove());
-  frame.classList.remove("dhui-showing-mystified");
   frame.classList.remove("dhui-unidentified-player-view");
 }
 
@@ -65,8 +63,6 @@ export function onRenderItemSheet(app, element) {
 
   // Clean up all previously injected elements before re-rendering.
   _cleanupInjected(frame);
-  // Reset view mode on each render so state changes (identify ↔ mystify) reset correctly.
-  app._dhuiViewMode = undefined;
 
   const content = frame.querySelector("section.window-content, .window-content");
 
@@ -74,7 +70,10 @@ export function onRenderItemSheet(app, element) {
     game.user.isGM ? _applyGMViewUnidentified(app, frame, controlsMenu, content, item)
                    : _applyPlayerView(app, frame, content, item);
   } else {
-    if (game.user.isGM) _injectGMMystifyEntry(controlsMenu, app, item);
+    if (game.user.isGM) {
+      _injectGMMystifyEntry(controlsMenu, app, item);
+      _injectStateToggleButton(app, frame, item);
+    }
   }
 }
 
@@ -90,7 +89,7 @@ export function onRenderItemSheet(app, element) {
 function _applyGMViewUnidentified(app, frame, controlsMenu, content, item) {
   if (content) _injectGMBanner(content, item);
   _injectGMMenuEntries(controlsMenu, app, item, { identified: false });
-  _injectViewToggle(app, frame, content, item);
+  _injectStateToggleButton(app, frame, item);
 }
 
 /**
@@ -143,94 +142,54 @@ function _injectGMMenuEntries(_controlsMenu, _app, _item, _opts) {
   // Header menu entries are provided by getHeaderControlsItemSheetV2 in main.js.
 }
 
-// ── GM View Toggle ────────────────────────────────────────────
+// ── GM State Toggle Button ────────────────────────────────────
 
 /**
- * Injects a toggle button into .window-header and a "Real Item Data" preview panel
- * into .window-content, allowing the GM to compare mystified vs. real presentation.
- * Under the non-destructive model, real data is read directly from item.name / item.img
- * (the document fields) rather than from legacy backup flags.
- * State is stored on the app instance so it survives re-renders within the same session.
+ * Injects a persistent mystify/identify toggle button into .window-header.
+ * Replaces the old view-toggle (which revealed real item data to the GM —
+ * now unnecessary since GMs always see real data in the sheet itself).
  *
- * Called from _applyGMViewUnidentified on every renderHandlebarsApplication.
+ * Icon and action flip based on current identified state:
+ *   - Unidentified → fa-eye      → click identifies the item immediately
+ *   - Identified   → fa-eye-slash → click opens the mystify dialog
+ *
+ * Called from _applyGMViewUnidentified (unidentified) and onRenderItemSheet
+ * else-branch (identified). Only shown to GMs.
+ *
  * @param {foundry.applications.api.ApplicationV2} app
  * @param {HTMLElement} frame
- * @param {HTMLElement|null} content
  * @param {Item} item
  */
-function _injectViewToggle(app, frame, content, item) {
-  if (app._dhuiViewMode === undefined) app._dhuiViewMode = "mystified";
-
+function _injectStateToggleButton(app, frame, item) {
   const header = frame.querySelector(".window-header");
-  if (header) {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "dhui-view-toggle";
-    btn.setAttribute("aria-label", "Toggle Mystified / Real View");
-    btn.innerHTML = `<i class="fas fa-eye"></i>`;
+  if (!header) return;
 
-    const menuBtn = header.querySelector('[data-action="menu"]')
-                 ?? header.querySelector(".header-control");
-    header.insertBefore(btn, menuBtn ?? null);
+  const unidentified = isUnidentified(item);
 
-    btn.addEventListener("click", () => {
-      app._dhuiViewMode = app._dhuiViewMode === "mystified" ? "real" : "mystified";
-      _applyViewMode(app, frame);
-    });
-  }
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "dhui-state-toggle";
+  btn.innerHTML = unidentified
+    ? `<i class="fas fa-eye"></i>`
+    : `<i class="fas fa-eye-slash"></i>`;
+  btn.dataset.tooltip = unidentified ? "Identify Item" : "Mystify Item";
 
-  // Real item data panel — reads from document fields directly, not legacy flags.
-  // In the non-destructive model, item.name and item.img ARE the real data.
-  if (content) {
-    const realName = item.name;
-    const realImg  = item.img ?? "";
-    const realDesc = item.system?.description ?? item.system?.details?.description ?? "";
+  const menuBtn = header.querySelector('[data-action="menu"]')
+               ?? header.querySelector(".header-control");
+  header.insertBefore(btn, menuBtn ?? null);
 
-    const panel = document.createElement("div");
-    panel.className = "dhui-mystified-view";
-    panel.innerHTML = `
-      <div class="dhui-mystified-preview">
-        <div class="dhui-mystified-preview__header">
-          <i class="fas fa-eye"></i>
-          <span>Real Item Data</span>
-        </div>
-        <div class="dhui-mystified-preview__body">
-          ${realImg ? `<div class="dhui-mystified-preview__img"><img src="${_escInner(realImg)}" alt="${_escInner(realName)}"></div>` : ""}
-          <div class="dhui-mystified-preview__info">
-            <h3 class="dhui-mystified-preview__name">${_escInner(realName)}</h3>
-            ${realDesc ? `<div class="dhui-mystified-preview__description">${realDesc}</div>` : ""}
-          </div>
-        </div>
-      </div>
-    `;
-    content.appendChild(panel);
-  }
-
-  _applyViewMode(app, frame);
-}
-
-/**
- * Toggles the dhui-showing-mystified CSS class on the frame and updates the
- * button icon/tooltip to reflect current view mode. Never re-renders the sheet.
- *
- * @param {foundry.applications.api.ApplicationV2} app
- * @param {HTMLElement} frame
- */
-function _applyViewMode(app, frame) {
-  if (!frame) return;
-  const showingReal = app._dhuiViewMode === "real";
-
-  frame.classList.toggle("dhui-showing-mystified", showingReal);
-
-  const btnIcon = frame.querySelector(".dhui-view-toggle i");
-  if (btnIcon) btnIcon.className = showingReal ? "fas fa-eye-slash" : "fas fa-eye";
-
-  const btn = frame.querySelector(".dhui-view-toggle");
-  if (btn) {
-    btn.dataset.tooltip = showingReal
-      ? "Showing: Real Item — click to return to mystified view"
-      : "Showing: Mystified View — click to reveal real item data";
-  }
+  btn.addEventListener("click", async () => {
+    if (isUnidentified(item)) {
+      await identifyItem(item);
+    } else {
+      await openMystifyDialog(item);
+    }
+    app.render({ force: true });
+    // Also rerender the owning actor sheet so inventory rows reflect the new state.
+    if (item.parent instanceof Actor && item.parent.sheet?.rendered) {
+      item.parent.sheet.render({ force: true });
+    }
+  });
 }
 
 function _makeMenuEntry(iconClass, label, onClick) {

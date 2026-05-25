@@ -1,7 +1,7 @@
 /* ============================================================
    dh-unidentified | gm-banner.css
-   GM banner, player badge, view toggle, unidentified inventory
-   row, and mystified preview panel.
+   GM banner, player badge, state toggle button, and unidentified
+   inventory row.
    ============================================================ */
 
 /* ── GM Banner (teal, inside .window-content) ── */
@@ -105,19 +105,19 @@ li.dhui-unidentified-row .item-name {
   font-style: italic;
 }
 
-/* ── GM View Toggle Button ── */
+/* ── GM State Toggle Button (Mystify / Identify) ── */
 
-.dhui-view-toggle {
+.dhui-state-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   align-self: center;        /* keeps the button inside the header flex row */
   flex-shrink: 0;            /* prevents the button from being compressed */
-  width: 22px;
-  height: 22px;
-  min-width: 22px;
-  min-height: 22px;
-  max-height: 22px;          /* explicit cap — prevents overflow beyond the header */
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  max-height: 24px;          /* explicit cap — prevents overflow beyond the header */
   padding: 0;
   box-sizing: border-box;
   border: 1px solid var(--dhui-border-muted);
@@ -140,84 +140,4 @@ li.dhui-unidentified-row .item-name {
     line-height: 1;
     pointer-events: none;
   }
-}
-
-/* Active state: when the GM is previewing the mystified (player) view */
-.dhui-showing-mystified .dhui-view-toggle {
-  color: var(--dhui-accent-text);
-  border-color: var(--dhui-accent);
-  background: oklch(from var(--dhui-accent) l c h / 0.15);
-}
-
-/* ── View content show/hide ── */
-
-/* By default the mystified preview panel is hidden */
-.dhui-mystified-view { display: none; }
-
-/* When toggle is active, hide all real sheet content except the GM banner
-   and the injected preview panel; show the preview panel */
-.dhui-showing-mystified .window-content > *:not(.dhui-gm-banner):not(.dhui-mystified-view) {
-  display: none !important;
-}
-.dhui-showing-mystified .dhui-mystified-view { display: block; }
-
-/* ── Mystified Preview Panel ── */
-
-.dhui-mystified-preview {
-  border: 1px solid var(--dhui-border);
-  border-radius: var(--dhui-radius);
-  overflow: hidden;
-  margin: 8px;
-}
-
-.dhui-mystified-preview__header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: oklch(from var(--dhui-accent) l c h / 0.10);
-  border-bottom: 1px solid var(--dhui-border-muted);
-  font-family: 'Montserrat', sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  color: var(--dhui-text-muted);
-
-  i { color: var(--dhui-accent); font-size: 12px; }
-}
-
-.dhui-mystified-preview__body {
-  display: flex;
-  gap: 12px;
-  padding: 12px;
-  background: var(--dhui-bg);
-}
-
-.dhui-mystified-preview__img img {
-  width: 64px;
-  height: 64px;
-  object-fit: contain;
-  border-radius: var(--dhui-radius);
-  border: 1px solid var(--dhui-border-muted);
-}
-
-.dhui-mystified-preview__info {
-  flex: 1;
-  min-width: 0;
-}
-
-.dhui-mystified-preview__name {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--dhui-accent-text);
-  margin: 0 0 6px;
-}
-
-.dhui-mystified-preview__description {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--dhui-text-muted);
 }
