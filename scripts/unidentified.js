@@ -139,10 +139,16 @@ export function buildLegacyMigrationUpdate(item) {
   if (flags[FLAG.REAL_IMG]  !== undefined) updates.img  = flags[FLAG.REAL_IMG];
   if (flags[FLAG.REAL_DESC] !== undefined) updates["system.description"] = flags[FLAG.REAL_DESC];
 
-  // Delete legacy backup flags using Foundry's -=key deletion syntax
-  updates[`flags.${MODULE_ID}.-=${FLAG.REAL_NAME}`] = null;
-  updates[`flags.${MODULE_ID}.-=${FLAG.REAL_IMG}`]  = null;
-  updates[`flags.${MODULE_ID}.-=${FLAG.REAL_DESC}`] = null;
+  // Delete legacy backup flags using the v14 ForcedDeletion operator.
+  // The old "-=key" prefix syntax is deprecated in v14; the correct form is to pass
+  // foundry.data.operators.ForcedDeletion as the value for each key to remove.
+  // Using a nested object for the module-flag namespace so the deletion keys are
+  // scoped correctly without touching maskedName / maskedImg / maskedDescription.
+  updates[`flags.${MODULE_ID}`] = {
+    [FLAG.REAL_NAME]: foundry.data.operators.ForcedDeletion,
+    [FLAG.REAL_IMG]:  foundry.data.operators.ForcedDeletion,
+    [FLAG.REAL_DESC]: foundry.data.operators.ForcedDeletion,
+  };
 
   return updates;
 }
