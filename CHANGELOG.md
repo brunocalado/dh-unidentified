@@ -1,18 +1,13 @@
-# Unreleased
-
-### [Fixed] Player identify-roll prompt not appearing after GM sends request
-
-Replaced `game.settings.set` + `updateSetting` hook with a direct `game.socket.emit` for the GM→Player identify-request path. The `updateSetting` hook delivers a Setting document whose `.value` can be a raw JSON string instead of a parsed object, causing `payload` to be `undefined` and the prompt to silently not render on the player's screen.
-
----
-
 # 0.1.0
 
 - v14 only
 - https://github.com/brunocalado/dh-unidentified/issues/2
 - https://github.com/brunocalado/dh-unidentified/issues/1
+- This new version has undergone a massive refactoring. Previously, the way an item was hidden was destructive, as the paths for both the item and its image were altered within the item itself. Now, the item remains untouched, and a mask is simply applied to modify it. This ensures that if the module is deactivated, the items immediately return to normal. If you have items created in the older version, a migration will automatically run to update them to the new workflow.
 
-# 0.0.3
+### [Fixed] Player identify-roll prompt not appearing after GM sends request
+
+Replaced `game.settings.set` + `updateSetting` hook with a direct `game.socket.emit` for the GM→Player identify-request path. The `updateSetting` hook delivers a Setting document whose `.value` can be a raw JSON string instead of a parsed object, causing `payload` to be `undefined` and the prompt to silently not render on the player's screen.
 
 ### [Changed] Non-destructive unidentified state (breaking architectural change)
 
