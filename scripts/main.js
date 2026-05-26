@@ -498,8 +498,16 @@ function _hideUnidentifiedDetails(actor, element) {
       el.style.setProperty("display", "none", "important");
     });
 
-    // Send to Chat button
-    li.querySelectorAll("[data-action='toChat']").forEach(el => {
+    // Send to Chat button — target only the <a> anchor in .controls.
+    // The img-portait container also carries data-action="toChat" for consumable/loot
+    // items (when item.usable is false), so a bare attribute selector would
+    // accidentally hide the entire icon area and collapse the row height.
+    li.querySelectorAll("a[data-action='toChat']").forEach(el => {
+      el.style.setProperty("display", "none", "important");
+    });
+
+    // Quantity field (consumable, loot) — must not reveal stack size to players
+    li.querySelectorAll(".item-resource").forEach(el => {
       el.style.setProperty("display", "none", "important");
     });
 

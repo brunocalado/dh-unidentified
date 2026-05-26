@@ -1,3 +1,9 @@
+# 0.1.2
+
+### [Fixed] Masked icon not displaying for consumable and loot items
+
+Consumable and loot items render with `data-action="toChat"` on their `img-portait` container (when `item.usable` is false). The module's selector for hiding the "Send to Chat" button was `[data-action='toChat']` — a bare attribute selector matching any element with that attribute, which accidentally hid the entire icon area. Changed selector to `a[data-action='toChat']` to target only the anchor button in `.controls`, leaving the icon container visible. This also fixes the row height difference for these item types.
+
 # 0.1.1
 
 ### [Fixed] Identify roll not revealing item on successful roll
