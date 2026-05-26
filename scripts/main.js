@@ -506,6 +506,12 @@ function _hideUnidentifiedDetails(actor, element) {
       el.style.setProperty("display", "none", "important");
     });
 
+    // Edit button — party actor sheet renders this per item row; hiding it prevents
+    // players from opening the real item sheet and bypassing the identity mask.
+    li.querySelectorAll("[data-action='editDoc']").forEach(el => {
+      el.style.setProperty("display", "none", "important");
+    });
+
     // Quantity field (consumable, loot) — must not reveal stack size to players
     li.querySelectorAll(".item-resource").forEach(el => {
       el.style.setProperty("display", "none", "important");

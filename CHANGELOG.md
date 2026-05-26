@@ -1,3 +1,9 @@
+# 0.1.3
+
+### [Fixed] Edit button visible on unidentified items in party actor sheets
+
+The party actor sheet renders an edit button (`data-action="editDoc"`) on each item row. For unidentified items, this button allowed players to open the real item sheet directly, bypassing the identity mask. Now hidden for players (GMs still see it).
+
 # 0.1.2
 
 ### [Fixed] Masked icon not displaying for consumable and loot items
