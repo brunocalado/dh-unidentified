@@ -2,7 +2,7 @@
   "id": "dh-unidentified",
   "title": "Daggerheart: Unidentified Items",
   "description": "Allows GMs to mark items as unidentified. Players see a masked name, icon, and description. All inputs are locked.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "compatibility": {
     "minimum": "14",
     "verified": "14"    

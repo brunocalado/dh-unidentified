@@ -9,7 +9,8 @@
  */
 
 import { MODULE_ID } from "./constants.js";
-import { isUnidentified, getDisplayName, getDisplayImg, _esc } from "./unidentified.js";
+import { isUnidentified, getDisplayName, getDisplayImg, getDisplayDescription, _esc } from "./unidentified.js";
+import { getLastIdentifyTrait, setLastIdentifyTrait } from "./settings.js";
 
 const TEMPLATE = `modules/${MODULE_ID}/templates/identify-request.hbs`;
 
@@ -72,8 +73,9 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
         return {
             users,
             selectedUserId: this.#selectedUserId,
-            traits: TRAITS,
-            difficulty: 15,
+            traits:      TRAITS,
+            difficulty:  15,
+            activeTrait: getLastIdentifyTrait(),
         };
     }
 
@@ -100,14 +102,23 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
             this._refreshItemList(initialActor);
         }
 
-        // ── Trait buttons — mutually exclusive ────────────────────
+        // ── Trait buttons — mutually exclusive, last selection persisted ──
         const traitInput   = html.querySelector("input[name='trait']");
         const traitButtons = html.querySelectorAll(".dhui-identify-trait-btn");
+        const initialTrait = getLastIdentifyTrait();
+
         traitButtons.forEach(btn => {
+            // Restore the saved (or default) trait on open.
+            if (btn.dataset.trait === initialTrait) {
+                btn.classList.add("active");
+                if (traitInput) traitInput.value = initialTrait;
+            }
             btn.addEventListener("click", () => {
                 traitButtons.forEach(b => b.classList.remove("active"));
                 btn.classList.add("active");
                 if (traitInput) traitInput.value = btn.dataset.trait;
+                // Persist so the next dialog open restores this choice.
+                setLastIdentifyTrait(btn.dataset.trait);
             });
         });
 
@@ -161,11 +172,11 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
             // Display helpers provide audience-appropriate values (masked when unidentified).
             const realName = item.name;
             const realImg  = item.img;
-            const realDesc = item.system?.description ?? item.system?.details?.description ?? "";
 
             // Masked values for the list display — what the player would see
             const maskedName = getDisplayName(item);
             const maskedImg  = getDisplayImg(item);
+            const maskedDesc = getDisplayDescription(item);
 
             const li = document.createElement("li");
             li.className      = "dhui-identify-item";
@@ -176,16 +187,15 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 <div class="dhui-identify-item__actions">
                     <button type="button"
                             class="dhui-identify-item__peek-btn"
-                            title="${_esc(realName)}"
-                            data-real-name="${_esc(realName)}"
-                            data-real-img="${_esc(realImg)}"
-                            data-real-desc="${_esc(realDesc)}"
-                            aria-label="Peek: ${_esc(realName)}">
+                            aria-label="Open sheet for ${_esc(realName)}">
                         <i class="fas fa-search"></i>
                     </button>
                     <button type="button"
                             class="dhui-identify-item__sheet-btn"
-                            aria-label="Open sheet for ${_esc(realName)}">
+                            data-masked-name="${_esc(maskedName)}"
+                            data-masked-img="${_esc(maskedImg)}"
+                            data-masked-desc="${_esc(maskedDesc)}"
+                            aria-label="Description of ${_esc(maskedName)}">
                         <i class="fas fa-scroll"></i>
                     </button>
                 </div>
@@ -195,16 +205,22 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
             const actionArea = li.querySelector(".dhui-identify-item__actions");
             actionArea?.addEventListener("click", e => e.stopPropagation());
 
-            // ── Peek button: show tooltip with real name, image, and description ──
+            // ── Peek button (lupa): open the real item sheet on click ──
+            const peekBtn = li.querySelector(".dhui-identify-item__peek-btn");
+            peekBtn?.addEventListener("click", () => {
+                item.sheet.render({ force: true });
+            });
+
+            // ── Sheet button (scroll): show tooltip with masked description on hover ──
             // Appended to this.element (dialog root) to keep CSS scope (.dhui-identify-app
             // nesting), but uses position:fixed with viewport coords to escape the
             // overflow-clipped scroll container (.dhui-identify-item-list).
-            const peekBtn = li.querySelector(".dhui-identify-item__peek-btn");
-            peekBtn?.addEventListener("mouseenter", e => {
+            const sheetBtn = li.querySelector(".dhui-identify-item__sheet-btn");
+            sheetBtn?.addEventListener("mouseenter", e => {
                 const btn  = e.currentTarget;
-                const name = btn.dataset.realName;
-                const img  = btn.dataset.realImg;
-                const desc = btn.dataset.realDesc;
+                const name = btn.dataset.maskedName;
+                const img  = btn.dataset.maskedImg;
+                const desc = btn.dataset.maskedDesc;
 
                 this.element.querySelector(".dhui-identify-item__tooltip")?.remove();
 
@@ -224,14 +240,8 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 tip.style.left   = `${rect.left}px`;
                 tip.style.bottom = `${window.innerHeight - rect.top + 6}px`;
             });
-            peekBtn?.addEventListener("mouseleave", () => {
+            sheetBtn?.addEventListener("mouseleave", () => {
                 this.element.querySelector(".dhui-identify-item__tooltip")?.remove();
-            });
-
-            // ── Sheet button: open the real item sheet ──
-            const sheetBtn = li.querySelector(".dhui-identify-item__sheet-btn");
-            sheetBtn?.addEventListener("click", () => {
-                item.sheet.render({ force: true });
             });
 
             li.addEventListener("click", () => {

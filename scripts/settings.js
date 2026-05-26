@@ -5,8 +5,9 @@
 
 import { MODULE_ID } from "./constants.js";
 
-const SETTING_KEY  = "typeDefaults";
-const SFX_KEY      = "identifySfx";
+const SETTING_KEY      = "typeDefaults";
+const SFX_KEY          = "identifySfx";
+const LAST_TRAIT_KEY   = "lastIdentifyTrait";
 const TEMPLATE_PATH       = `modules/${MODULE_ID}/templates/default-masks-config.hbs`;
 const GUIDE_TEMPLATE_PATH = `modules/${MODULE_ID}/templates/module-guide.hbs`;
 
@@ -61,6 +62,14 @@ export function registerSettings() {
     config:  false,
     type:    Object,
     default: DEFAULT_TYPE_DEFAULTS,
+  });
+
+  // Last trait used in the Identify Roll dialog — restores GM preference on reopen
+  game.settings.register(MODULE_ID, LAST_TRAIT_KEY, {
+    scope:   "client",
+    config:  false,
+    type:    String,
+    default: "knowledge",
   });
 
   // Sound effects for identify rolls (success / failure)
@@ -128,6 +137,25 @@ export function getSfxSettings() {
     successPath: stored.successPath || DEFAULT_SFX.successPath,
     failurePath: stored.failurePath || DEFAULT_SFX.failurePath,
   };
+}
+
+/**
+ * Returns the last trait selected in the Identify Roll dialog for this client.
+ * Falls back to "knowledge" when no value has been saved yet.
+ * @returns {string}
+ */
+export function getLastIdentifyTrait() {
+  return game.settings.get(MODULE_ID, LAST_TRAIT_KEY);
+}
+
+/**
+ * Persists the trait selected by the GM in the Identify Roll dialog.
+ * Called on every trait button click so the preference survives re-opens.
+ * @param {string} trait - One of the TRAITS values from identify-app.js
+ * @returns {Promise<void>}
+ */
+export async function setLastIdentifyTrait(trait) {
+  await game.settings.set(MODULE_ID, LAST_TRAIT_KEY, trait);
 }
 
 // ── DefaultMasksConfig — ApplicationV2 ───────────────────────

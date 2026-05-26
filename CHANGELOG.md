@@ -1,3 +1,21 @@
+# 0.1.1
+
+### [Added] Trait persistence in Identify Roll dialog
+
+The last trait selected in the "Request Identify Roll" dialog is now saved and automatically restored on next open. Default trait is "knowledge". Setting is client-scoped (per-user preference).
+
+### [Changed] Improve Identify Roll dialog item buttons
+
+- **Magnifying glass icon (lupa)** now opens the real item sheet on click (previously showed a tooltip on hover).
+- **Scroll icon** now displays a tooltip with the masked/unidentified description on hover (previously opened the item sheet).
+- This swap makes the interactions more intuitive: peek-then-identify (lupa opens sheet) vs. description-preview (scroll shows summary).
+
+### [Changed] Center Advantage/Disadvantage checkboxes in Identify Roll dialog
+
+The advantage and disadvantage checkboxes are now horizontally centered in their container instead of left-aligned.
+
+
+
 # 0.1.0
 
 - v14 only

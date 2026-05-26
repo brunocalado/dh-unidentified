@@ -307,6 +307,7 @@
   /* Advantage / Disadvantage checkboxes */
   .dhui-identify-cb-row {
     display: flex;
+    justify-content: center;
     gap: 18px;
     background: var(--dhui-bg);
     padding: 8px 10px;
