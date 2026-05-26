@@ -261,13 +261,17 @@ function _registerHooks() {
     const pending = game.modules.get(MODULE_ID)._pendingIdentify;
     if (!pending || Date.now() > pending.expires) return;
 
-    // Skip messages without a roll result (system notices, flavor text, etc.)
-    if (message.system?.roll?.success === undefined) return;
+    // In Daggerheart v14 the ChatMessage system object is schema-validated and no longer
+    // carries a top-level `roll` field. The roll result (including `success`) now lives
+    // inside message.rolls[0].options.roll, so we read from there instead.
+    if (message.type !== "dualityRoll") return;
+    const rollOptions = message.rolls?.[0]?.options?.roll;
+    if (rollOptions?.success === undefined) return;
 
     // Consume immediately to prevent a second roll in the TTL window from re-triggering.
     game.modules.get(MODULE_ID)._pendingIdentify = null;
 
-    const success = message.system.roll.success === true;
+    const success = rollOptions.success === true;
 
     // Audible feedback for the rolling player — only this client has _pendingIdentify set.
     const sfx  = getSfxSettings();

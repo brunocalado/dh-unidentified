@@ -1,5 +1,9 @@
 # 0.1.1
 
+### [Fixed] Identify roll not revealing item on successful roll
+
+In Daggerheart v14, the ChatMessage `system` object is now schema-validated (DataModel), and the `roll` field was removed from it. The identify-roll hook was checking `message.system.roll.success` which is now always `undefined`, preventing the GM from receiving the roll result and thus never calling `identifyItem()`. Now reads the roll result from `message.rolls[0].options.roll.success` (where Daggerheart v14 stores it) and filters by message type to avoid false positives.
+
 ### [Added] Trait persistence in Identify Roll dialog
 
 The last trait selected in the "Request Identify Roll" dialog is now saved and automatically restored on next open. Default trait is "knowledge". Setting is client-scoped (per-user preference).
@@ -13,8 +17,6 @@ The last trait selected in the "Request Identify Roll" dialog is now saved and a
 ### [Changed] Center Advantage/Disadvantage checkboxes in Identify Roll dialog
 
 The advantage and disadvantage checkboxes are now horizontally centered in their container instead of left-aligned.
-
-
 
 # 0.1.0
 
