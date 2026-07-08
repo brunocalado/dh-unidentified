@@ -1,5 +1,8 @@
 # 🔍 Unidentified Items
 
+
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy_Me_a_Coffee-Donate-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/mestredigital) [![More Modules](https://img.shields.io/badge/Foundry%20VTT-More%20Modules-red?style=for-the-badge&logo=gamepad)](https://mestredigital.online/pages/projetos-en)
+
 ## for Daggerheart
 
 **Hide items from your players. Reveal them when the moment is right.**
@@ -82,6 +85,12 @@ The player rolls. If they succeed, the item reveals itself automatically. If the
 **Step 4 — Manual reveal (optional)**
 
 You can also reveal any item manually at any time, no roll needed. Just right-click and choose *"Reveal Item"*.
+
+---
+
+## Legacy Cleanup (old-version items)
+
+Used this module before version 0.1.0? Those older versions hid items in a way that changed the item itself. If you still have items from back then, there's an optional, GM-only cleanup macro that restores them to their original state. See the **[Legacy Cleanup guide](https://github.com/brunocalado/dh-unidentified/wiki/Legacy-Cleanup)** on the wiki for the macro and instructions.
 
 ---
 

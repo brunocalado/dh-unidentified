@@ -1,3 +1,13 @@
+# 0.1.4
+
+### [Removed] Automatic legacy migration
+
+The one-time automatic migration that ran on GM load (restoring items written by the old pre-0.1.0 destructive model) has been removed entirely — it was leaving migrated items in a broken, empty-looking state. There is no longer any automatic migration or fallback on world load.
+
+### [Added] Manual legacy cleanup macro
+
+Worlds that still hold items mystified by the old destructive model can now clean them up on demand with an optional GM-only script macro. Run once as GM, it restores each affected item's real name/image/description from the backup flags and removes all `dh-unidentified` data from it, returning the item to its exact pre-module state. It is opt-in, irreversible (a confirmation is shown first), and leaves current new-model unidentified items untouched. The macro and full instructions live on the [Legacy Cleanup wiki page](https://github.com/brunocalado/dh-unidentified/wiki/Legacy-Cleanup).
+
 # 0.1.3
 
 ### [Fixed] Edit button visible on unidentified items in party actor sheets

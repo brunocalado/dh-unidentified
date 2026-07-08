@@ -19,18 +19,12 @@ export const SUPPORTED_TYPES = ["weapon", "armor", "loot", "consumable"];
 
 /**
  * Flag keys used by this module.
- * REAL_NAME / REAL_IMG / REAL_DESC are legacy-only — written by the old
- * destructive model, read only during one-time migration, then deleted.
  */
 const FLAG = {
   IDENTIFIED:    "identified",
   MASK_NAME:     "maskedName",
   MASK_IMG:      "maskedImg",
   MASK_DESC:     "maskedDescription",
-  // Legacy backup fields (pre-0.0.3) — never written by current code
-  REAL_NAME:     "realName",
-  REAL_IMG:      "realImg",
-  REAL_DESC:     "realDescription",
 };
 
 // ── Core helpers ──────────────────────────────────────────────
@@ -98,54 +92,6 @@ export function getDisplayDescription(item) {
     return item.system?.description ?? item.system?.details?.description ?? "";
   }
   return getFlags(item)[FLAG.MASK_DESC] ?? "";
-}
-
-// ── Legacy migration helpers ──────────────────────────────────
-
-/**
- * Returns true when this item carries legacy destructive-model data:
- * item fields were overwritten with masked values and originals were stored
- * in realName / realImg / realDescription flags. This condition is used
- * by the migration pass to identify records that need restoration.
- * @param {Item} item
- * @returns {boolean}
- */
-export function isLegacyDestructiveState(item) {
-  const flags = getFlags(item);
-  return flags[FLAG.IDENTIFIED] === false && (
-    flags[FLAG.REAL_NAME] !== undefined ||
-    flags[FLAG.REAL_IMG]  !== undefined ||
-    flags[FLAG.REAL_DESC] !== undefined
-  );
-}
-
-/**
- * One-time migration: restores item.name / img / system.description from the
- * legacy backup flags, preserves masked metadata for re-mystification reuse,
- * and deletes the now-obsolete backup flags.
- * Safe to call multiple times — isLegacyDestructiveState returns false after
- * the first run so repeated calls are no-ops.
- * @param {Item} item
- * @returns {Promise<object>} The update data object (for batch callers)
- */
-export function buildLegacyMigrationUpdate(item) {
-  const flags = getFlags(item);
-
-  const updates = { _id: item.id };
-
-  // Restore canonical document fields from the backup flags
-  if (flags[FLAG.REAL_NAME] !== undefined) updates.name = flags[FLAG.REAL_NAME];
-  if (flags[FLAG.REAL_IMG]  !== undefined) updates.img  = flags[FLAG.REAL_IMG];
-  if (flags[FLAG.REAL_DESC] !== undefined) updates["system.description"] = flags[FLAG.REAL_DESC];
-
-  // Delete legacy backup flags using the v14 ForcedDeletion operator.
-  // Each key uses the full dot-path so only these three flags are removed —
-  // maskedName / maskedImg / maskedDescription are left untouched.
-  updates[`flags.${MODULE_ID}.${FLAG.REAL_NAME}`] = foundry.data.operators.ForcedDeletion;
-  updates[`flags.${MODULE_ID}.${FLAG.REAL_IMG}`]  = foundry.data.operators.ForcedDeletion;
-  updates[`flags.${MODULE_ID}.${FLAG.REAL_DESC}`] = foundry.data.operators.ForcedDeletion;
-
-  return updates;
 }
 
 // ── Mystify ───────────────────────────────────────────────────

@@ -9,7 +9,6 @@ import { patchActorSheetContextMenus } from "./context-menu.js";
 import {
   isUnidentified, isSupported, getFlags, identifyItem, openMystifyDialog, _esc,
   getDisplayName, getDisplayImg, getDisplayDescription,
-  isLegacyDestructiveState, buildLegacyMigrationUpdate,
 } from "./unidentified.js";
 import { registerSettings, getSfxSettings } from "./settings.js";
 import { Identify, IdentifyPromptApp } from "./identify-app.js";
@@ -30,10 +29,6 @@ Hooks.once("ready", async () => {
   _registerHooks();
   _registerSocketHandler();
   game.modules.get(MODULE_ID).api = { isUnidentified, getFlags, Identify, getDisplayName, getDisplayImg };
-
-  // One-time GM-only migration: restore items written by the old destructive model.
-  // This pass is idempotent — isLegacyDestructiveState returns false after first run.
-  if (game.user.isGM) await _runLegacyMigration();
 });
 
 // ── Daggerheart Menu button ───────────────────────────────────
@@ -298,53 +293,6 @@ function _registerHooks() {
   });
 
   log("hooks registered.");
-}
-
-// ── Legacy migration ──────────────────────────────────────────
-
-/**
- * One-time world migration pass for the active GM.
- * Detects items written by the old destructive model (pre-0.0.3) that have
- * their real name/img/description stored in backup flags, restores them, and
- * removes the obsolete backup flags. Batches updates per collection to comply
- * with the module's no-sequential-update rule.
- *
- * Called from Hooks.once("ready").
- * @returns {Promise<void>}
- */
-async function _runLegacyMigration() {
-  // ── World-level items ──
-  const worldUpdates = game.items.contents
-    .filter(item => isLegacyDestructiveState(item))
-    .map(item => buildLegacyMigrationUpdate(item));
-
-  if (worldUpdates.length) {
-    await Item.implementation.updateDocuments(worldUpdates);
-  }
-
-  // ── Actor-embedded items — grouped by parent actor for batch updates ──
-  /** @type {Map<string, object[]>} actorId → array of item update objects */
-  const actorItemUpdates = new Map();
-
-  for (const actor of game.actors.contents) {
-    for (const item of actor.items.contents) {
-      if (!isLegacyDestructiveState(item)) continue;
-      if (!actorItemUpdates.has(actor.id)) actorItemUpdates.set(actor.id, []);
-      actorItemUpdates.get(actor.id).push(buildLegacyMigrationUpdate(item));
-    }
-  }
-
-  // Each batch targets one actor, satisfying the same-collection batch requirement.
-  for (const [actorId, updates] of actorItemUpdates) {
-    const actor = game.actors.get(actorId);
-    if (actor) await Item.implementation.updateDocuments(updates, { parent: actor });
-  }
-
-  const total = worldUpdates.length + [...actorItemUpdates.values()].reduce((n, arr) => n + arr.length, 0);
-  if (total > 0) {
-    log(`Legacy migration complete: ${total} item(s) restored to non-destructive model.`);
-    ui.notifications.info(`[DH Unidentified] Migrated ${total} item(s) from the old destructive model. Real item data has been restored.`);
-  }
 }
 
 // ── Rerender helper ───────────────────────────────────────────
