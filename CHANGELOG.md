@@ -1,3 +1,40 @@
+# 0.1.5
+
+### [Added] Identify result privacy
+
+New GM-only world setting **Identify Result Privacy**, defaulting to **Public**.
+
+- **Public** — everyone connected sees the result chat message and hears the success/failure sound.
+- **Private** — only the player who rolled and the GMs see the result and hear the sound.
+
+Private mode also whispers Daggerheart's own duality-roll message, via `preCreateChatMessage` on the roller's client. Without that, the module stayed silent but the system still posted the roll publicly, and any player could read the total against the visible difficulty.
+
+The GM resolves a single audience per result and drives both channels from it, so chat and audio can never disagree about who is allowed to learn the outcome. The chat audience is enforced server-side through `whisper`; the sound is broadcast on a new `identifySfx` socket message and filtered client-side, as Foundry offers no server-side audience control for audio.
+
+The result sound no longer plays locally on the roller's client the instant the roll lands — it now arrives with the GM broadcast, which also syncs it to the chat message instead of firing slightly ahead of it.
+
+### [Added] Party sheet items in the Identify Roll dialog
+
+Unidentified items held on a **party actor** are now listed alongside the selected player's own items, marked with a purple edge and a group icon. Any player can be asked to identify one, so shared loot no longer has to be moved onto a character sheet first.
+
+A party actor qualifies when every player owns it — either default ownership set to Owner, or an explicit Owner grant for each player. Each row carries its owning actor id, so the request resolves against the party sheet rather than assuming the target player's character.
+
+### [Fixed] Player prompt stayed open after rolling
+
+The identify prompt closed on a bubble-phase click listener, but Daggerheart's handler on the enriched `.duality-roll-button` stops propagation, so the listener never fired. Moved to the capture phase, which runs before the target's own handler and cannot be suppressed.
+
+### [Changed] Identify Roll dialog
+
+- **Advantage / Disadvantage** are now iOS-style toggle switches instead of checkboxes. Still mutually exclusive.
+- **Items show their real name and icon.** The dialog is GM-only, and its purpose is to identify which item is being handed out; the player still receives the masked name and image in their prompt.
+- **Removed the Cancel button** and the `Target` / `Roll Configuration` column headings.
+- **Removed the scroll button** on each item row, which showed a masked-description tooltip and served no purpose for the GM.
+- **Selected rows are redrawn.** The selection ring was an `outline`, painted outside the row's border box, and the item list clips on both axes — so its left and right edges were cut off. It is now an inset `box-shadow`, closed on all four sides, with a leading accent bar, an inner glow, and the item name in teal.
+
+### [Changed] Module guide
+
+Rewritten to cover the current feature set: mask defaults, the request workflow, party sheet items, result privacy, and sound configuration. The redundant Close button is gone — the window's own close control dismisses it.
+
 # 0.1.4
 
 ### [Removed] Automatic legacy migration

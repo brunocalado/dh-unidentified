@@ -6,14 +6,15 @@
       Requirement: Linked Actor
     </h2>
     <p class="dhui-guide-section__body">
-      To request item identification, <strong>the player character must be linked to a user account</strong>.
-      Without a linked actor, the module has no way to associate the request with a persistent character.
+      To request an identify roll, <strong>the player must have a character assigned to their user
+      account</strong>. The Request Identify Roll dialog only lists users who are connected, are not
+      GMs, and have such a character — without one there is no inventory to read.
     </p>
     <div class="dhui-guide-steps">
-      <p class="dhui-guide-steps__label">How to link an actor to a user:</p>
+      <p class="dhui-guide-steps__label">How to assign a character to a user:</p>
       <ol class="dhui-guide-steps__list">
-        <li>Right click the user name in the player list an open User Configuration</li>
-        <li>Select an actor the user. The user must have ownership over that actor</li>
+        <li>Right-click the user name in the Players list and open <strong>User Configuration</strong>.</li>
+        <li>Pick the actor for that user. The user must have ownership of that actor.</li>
         <li>Click <strong>Save Changes</strong>.</li>
       </ol>
     </div>
@@ -25,10 +26,15 @@
       Hiding an Item (Mystify)
     </h2>
     <p class="dhui-guide-section__body">
-      Right-click any item in the actor's inventory sheet and select
-      <strong>"Mystify Item"</strong>. A dialog will prompt you to set a masked name,
-      description, and icon that players will see instead of the real item data.
-      Confirm to apply the mask.
+      Works on <strong>weapons, armor, loot and consumables</strong>. Right-click the item in an
+      actor's inventory and choose <strong>Mystify Item</strong>, or open the item sheet and use the
+      <strong>&#8942;</strong> header menu. A dialog lets you set the masked name, description and
+      icon that players will see.
+    </p>
+    <p class="dhui-guide-steps__note">
+      Nothing is written over the item itself. The real name, image and description stay in the
+      document at all times — the mask is presentation only, applied when the sheet renders. Disable
+      the module and every item is immediately back to normal.
     </p>
   </section>
 
@@ -38,17 +44,73 @@
       Revealing an Item (Identify)
     </h2>
     <p class="dhui-guide-section__body">
-      To reveal a previously hidden item, right-click it and select
-      <strong>"Identify Item"</strong> (instant, GM only) or use the
-      <strong>GM Identify App</strong> to run a skill check against a DC.
-      Once identified, the real item name, description, and icon are restored for all players.
+      To reveal an item straight away, right-click it and choose <strong>Identify Item</strong>, or
+      use the <strong>&#8942;</strong> menu on its sheet and confirm with <strong>Identify</strong>.
+      To make the players earn it, send them a roll instead — see below.
     </p>
   </section>
 
-  <footer class="dhui-guide-footer">
-    <button type="button" class="dhui-guide-btn dhui-guide-btn--close">
-      <i class="fas fa-times"></i> Close
-    </button>
-  </footer>
+  <section class="dhui-guide-section">
+    <h2 class="dhui-guide-section__title">
+      <i class="fas fa-dice-d20"></i>
+      Requesting an Identify Roll
+    </h2>
+    <p class="dhui-guide-section__body">
+      Open <strong>Identify Items</strong> from the Daggerheart Menu, or run
+      <strong>Identify.Open()</strong> in a macro.
+    </p>
+    <div class="dhui-guide-steps">
+      <ol class="dhui-guide-steps__list">
+        <li>Pick the player on the left. Their unidentified items are listed below.</li>
+        <li>Click an item to select it. The magnifier opens its real sheet if you need a look.</li>
+        <li>Pick a trait and a difficulty, and toggle <strong>Advantage</strong> or
+            <strong>Disadvantage</strong> if the situation calls for it.</li>
+        <li>Click <strong>Send to Player</strong>. A prompt appears on their screen.</li>
+      </ol>
+      <p class="dhui-guide-steps__note">
+        The player only ever sees the masked name and icon in that prompt. On a success the item
+        reveals itself; on a failure it stays hidden and you can try again later.
+      </p>
+    </div>
+  </section>
+
+  <section class="dhui-guide-section">
+    <h2 class="dhui-guide-section__title">
+      <i class="fas fa-users"></i>
+      Party Sheet Items
+    </h2>
+    <p class="dhui-guide-section__body">
+      Unidentified items sitting on a <strong>party actor</strong> are offered too, marked with a
+      purple edge and a group icon. Any player can be asked to identify one — the item never has to
+      be on their own character. The party actor qualifies when
+      <strong>every player owns it</strong>, either through default ownership set to Owner or an
+      explicit Owner grant for each player.
+    </p>
+  </section>
+
+  <section class="dhui-guide-section">
+    <h2 class="dhui-guide-section__title">
+      <i class="fas fa-user-secret"></i>
+      Result Privacy
+    </h2>
+    <p class="dhui-guide-section__body">
+      In module settings, <strong>Identify Result Privacy</strong> controls who learns the outcome.
+      <strong>Public</strong> (the default) shows the result to the whole table.
+      <strong>Private</strong> keeps the roll, the result message and the sound between the player
+      who rolled and the GM. This setting is GM-only and applies to every request.
+    </p>
+  </section>
+
+  <section class="dhui-guide-section">
+    <h2 class="dhui-guide-section__title">
+      <i class="fas fa-sliders-h"></i>
+      Defaults and Sounds
+    </h2>
+    <p class="dhui-guide-section__body">
+      <strong>Configure Default Masks</strong> in module settings sets the masked name, description
+      and icon suggested for each item type, so mystifying is usually one click and done. The same
+      dialog sets the success and failure sounds played when a roll resolves.
+    </p>
+  </section>
 
 </div>

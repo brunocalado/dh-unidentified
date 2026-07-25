@@ -2,35 +2,46 @@
   "id": "dh-unidentified",
   "title": "Daggerheart: Unidentified Items",
   "description": "Allows GMs to mark items as unidentified. Players see a masked name, icon, and description. All inputs are locked.",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "compatibility": {
     "minimum": "14",
-    "verified": "14"    
+    "verified": "14",
+    "maximum": "14"
   },
-
   "authors": [
     {
       "name": "Mestre Digital",
-      "url": "http://youtube.com/@mestredigital",      
+      "url": "http://youtube.com/@mestredigital",
       "flags": {}
     }
   ],
-
   "socket": true,
-  
   "esmodules": [
     "scripts/main.js"
   ],
   "styles": [
-    "styles/module.css",
-    "styles/gm-banner.css",
-    "styles/mystify-dialog.css",
-    "styles/cfg-dialog.css",
-    "styles/identify-app.css",
-    "styles/identify-prompt.css",
-    "styles/guide-dialog.css"
+    {
+      "src": "styles/module.css"
+    },
+    {
+      "src": "styles/gm-banner.css"
+    },
+    {
+      "src": "styles/mystify-dialog.css"
+    },
+    {
+      "src": "styles/cfg-dialog.css"
+    },
+    {
+      "src": "styles/identify-app.css"
+    },
+    {
+      "src": "styles/identify-prompt.css"
+    },
+    {
+      "src": "styles/guide-dialog.css"
+    }
   ],
-
   "relationships": {
     "systems": [
       {
@@ -42,7 +53,6 @@
       }
     ]
   },
-
   "url": "https://github.com/brunocalado/dh-unidentified",
   "manifest": "https://raw.githubusercontent.com/brunocalado/dh-unidentified/main/module.json",
   "download": "https://codeload.github.com/brunocalado/dh-unidentified/zip/main",

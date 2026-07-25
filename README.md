@@ -23,8 +23,11 @@ Here's the full loop:
 - **Request an Identify Roll** — send a roll request to a specific player, choosing the trait and difficulty yourself
 - **Reveal on success** — the item shows its true identity the moment the roll lands
 - **Keep secrets on failure** — the item stays masked, mystery intact
+- **Keep it quiet** — optionally confine the whole result to the player who rolled and you
 
 As the GM, you always see what things really are. Players only see the mask.
+
+Nothing is written over the item itself. The real name, image and description stay in the document at all times — the mask is presentation only, applied when the sheet renders. Turn the module off and every item is immediately back to normal.
 
 ---
 
@@ -58,11 +61,15 @@ That's the experience this module creates.
 
 | Feature | Description |
 |---|---|
-| **Mark items as unidentified** | Works on weapons, consumables, and loot |
-| **Custom mask** | Set a fake name and fake image per item |
+| **Mark items as unidentified** | Works on weapons, armor, loot, and consumables |
+| **Custom mask** | Set a fake name, description, and image per item |
+| **Mask defaults per type** | Configure once, then mystify in a single click |
 | **Identify Roll request** | Send a roll to any player from a clean dialog |
 | **Trait & difficulty control** | You pick the trait (Agility, Knowledge, etc.) and the DC |
-| **Advantage / Disadvantage** | Supported in the roll request |
+| **Advantage / Disadvantage** | Toggles in the roll request, mutually exclusive |
+| **Party sheet items** | Items on a shared party actor can be handed to any player to identify |
+| **Result privacy** | Keep the roll, the message, and the sound between the roller and you |
+| **Success / failure sounds** | Custom audio cues when a roll resolves |
 | **Auto-reveal on success** | Item updates automatically when the roll passes |
 | **GM always sees real data** | Peek at the true item name and description at any time |
 
@@ -70,13 +77,15 @@ That's the experience this module creates.
 
 ## How to Use
 
-**Step 1 — Unidentify an item**
+**Step 1 — Mystify an item**
 
-Right-click any item in an actor's inventory and look for the *"Mark as Unidentified"* option. You can optionally set a custom name and image to show the player.
+Right-click any item in an actor's inventory and choose **Mystify Item**, or open the item's sheet and use the **⋮** header menu. A dialog lets you set the masked name, description, and icon the players will see. Works on weapons, armor, loot, and consumables.
 
 **Step 2 — Request an Identify Roll**
 
-When the player wants to examine the item, open the **Identify Request** dialog from the GM toolbar or run `Identify.Open();`. Choose the player, select which item they're examining, pick a trait and difficulty, then click **Send to Player**.
+When the player wants to examine the item, open **Identify Items** from the Daggerheart Menu, or run `Identify.Open();`. Choose the player, select the item, pick a trait and difficulty, optionally toggle Advantage or Disadvantage, then click **Send to Player**.
+
+The player needs a character assigned to their user account — the dialog only lists connected non-GM users who have one.
 
 **Step 3 — Watch the roll**
 
@@ -84,7 +93,26 @@ The player rolls. If they succeed, the item reveals itself automatically. If the
 
 **Step 4 — Manual reveal (optional)**
 
-You can also reveal any item manually at any time, no roll needed. Just right-click and choose *"Reveal Item"*.
+You can also reveal any item at any time, no roll needed. Right-click it and choose **Identify Item**, or use the **⋮** menu on its sheet and confirm with **Identify**.
+
+---
+
+## Party Sheet Items
+
+Unidentified items sitting on a **party actor** show up in the request dialog alongside the selected player's own items, marked with a purple edge and a group icon. That lets you ask any player to identify shared loot — the item never has to be on their character.
+
+A party actor qualifies when **every player owns it**: either its default ownership is set to Owner, or each player has an explicit Owner grant.
+
+---
+
+## Result Privacy
+
+Module settings carry an **Identify Result Privacy** option, GM-only, that decides who learns the outcome of a roll:
+
+- **Public** *(default)* — the whole table sees the roll and the result message, and everyone hears the sound.
+- **Private** — the duality roll, the result message, and the sound stay between the player who rolled and the GM.
+
+The chat side of privacy is enforced by Foundry itself, so a player genuinely cannot read a result that wasn't addressed to them. The sound cue is filtered on each client, which is the same trust model Foundry uses for its own audio broadcasts.
 
 ---
 
@@ -120,8 +148,7 @@ https://raw.githubusercontent.com/brunocalado/dh-unidentified/main/module.json
 | Module | Description |
 | :--- | :--- |
 | 💀 [**Adversary Manager**](https://github.com/brunocalado/daggerheart-advmanager) | Scale adversaries instantly and build balanced encounters in Foundry VTT. |
-| 🌟 [**Best Modules**](https://github.com/brunocalado/dh-best-modules) | A curated collection of essential modules to enhance the Daggerheart experience. |
-| 🐉 [**Colossus**](https://github.com/brunocalado/dh-colossus) | Manage massive multi-part boss encounters with independent HP per part and a single shared stress pool.|
+| 🐉 [**Colossus**](https://github.com/brunocalado/dh-colossus) | Manage massive multi-part boss encounters with independent HP per part and a single shared stress pool. |
 | 💥 [**Critical**](https://github.com/brunocalado/daggerheart-critical) | Animated Critical. |
 | 💠 [**Custom Stat Tracker**](https://github.com/brunocalado/dh-new-stat-tracker) | Add custom trackers to actors. |
 | ☠️ [**Death Moves**](https://github.com/brunocalado/daggerheart-death-moves) | Enhances the Death Move moment with a dramatic interface and full automation. |

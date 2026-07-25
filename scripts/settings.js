@@ -1,13 +1,22 @@
+/*!
+ * Daggerheart: Unidentified Items
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
 // ============================================================
 // dh-unidentified | settings.js
 // Module settings registration and DefaultMasksConfig dialog (ApplicationV2)
 // ============================================================
 
-import { MODULE_ID } from "./constants.js";
+import { MODULE_ID, IDENTIFY_PRIVACY } from "./constants.js";
 
 const SETTING_KEY      = "typeDefaults";
 const SFX_KEY          = "identifySfx";
 const LAST_TRAIT_KEY   = "lastIdentifyTrait";
+const PRIVACY_KEY      = "identifyResultPrivacy";
 const TEMPLATE_PATH       = `modules/${MODULE_ID}/templates/default-masks-config.hbs`;
 const GUIDE_TEMPLATE_PATH = `modules/${MODULE_ID}/templates/module-guide.hbs`;
 
@@ -80,6 +89,24 @@ export function registerSettings() {
     default: DEFAULT_SFX,
   });
 
+  // Identify-result privacy — who sees the outcome and hears the sound.
+  // World scope makes this GM-exclusive: Foundry's settings panel only renders
+  // world-scoped settings for users who may modify world settings (the GM).
+  // Every client still reads the value, which is required because each one
+  // filters the result sound against the audience the GM resolved.
+  game.settings.register(MODULE_ID, PRIVACY_KEY, {
+    name:   "Identify Result Privacy",
+    hint:   "Who learns the outcome of an identify roll — both the chat message and the success/failure sound. Public: everyone connected to the table. Private: only the player who rolled and the GM.",
+    scope:  "world",
+    config: true,
+    type:   String,
+    choices: {
+      [IDENTIFY_PRIVACY.PUBLIC]:  "Public — everyone at the table",
+      [IDENTIFY_PRIVACY.PRIVATE]: "Private — only the roller and the GM",
+    },
+    default: IDENTIFY_PRIVACY.PUBLIC,
+  });
+
   // Usage guide button — visible to all users (restricted: false)
   game.settings.registerMenu(MODULE_ID, "moduleGuideMenu", {
     name:       "Module Guide",
@@ -137,6 +164,16 @@ export function getSfxSettings() {
     successPath: stored.successPath || DEFAULT_SFX.successPath,
     failurePath: stored.failurePath || DEFAULT_SFX.failurePath,
   };
+}
+
+/**
+ * Returns the configured audience mode for identify-roll results.
+ * Consumed by the identifyResult socket branch in main.js, which resolves the
+ * concrete recipient list from it before the chat message and sound go out.
+ * @returns {string} One of the IDENTIFY_PRIVACY values.
+ */
+export function getIdentifyPrivacy() {
+  return game.settings.get(MODULE_ID, PRIVACY_KEY) ?? IDENTIFY_PRIVACY.PUBLIC;
 }
 
 /**
@@ -365,15 +402,6 @@ class ModuleGuideApp extends foundry.applications.api.ApplicationV2 {
     content.replaceChildren(...result.childNodes);
   }
 
-  /**
-   * Attaches the Close button listener after the DOM is live.
-   * Called by the ApplicationV2 lifecycle after _replaceHTML.
-   * @override
-   * @param {object} _context - Render context
-   * @param {object} _options - Render options
-   */
-  _onRender(_context, _options) {
-    this.element.querySelector(".dhui-guide-btn--close")
-      ?.addEventListener("click", () => this.close());
-  }
+  // No _onRender: the guide is read-only content with no interactive elements.
+  // It is dismissed with the window's own close control.
 }

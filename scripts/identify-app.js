@@ -1,3 +1,11 @@
+/*!
+ * Daggerheart: Unidentified Items
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
 /**
  * @file identify-app.js
  * Provides the GM-facing IdentifyApp dialog and the player-facing IdentifyPromptApp,
@@ -9,7 +17,7 @@
  */
 
 import { MODULE_ID } from "./constants.js";
-import { isUnidentified, getDisplayName, getDisplayImg, getDisplayDescription, _esc } from "./unidentified.js";
+import { isUnidentified, getDisplayName, getDisplayImg, _esc } from "./unidentified.js";
 import { getLastIdentifyTrait, setLastIdentifyTrait } from "./settings.js";
 
 const TEMPLATE = `modules/${MODULE_ID}/templates/identify-request.hbs`;
@@ -17,7 +25,32 @@ const TEMPLATE = `modules/${MODULE_ID}/templates/identify-request.hbs`;
 /** Trait names supported by the Daggerheart /dr command. */
 const TRAITS = ["agility", "strength", "finesse", "instinct", "presence", "knowledge"];
 
+/** Actor type the Daggerheart system uses for the shared party sheet. */
+const PARTY_ACTOR_TYPE = "party";
+
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+
+/**
+ * Collects every world actor of type "party" that all players fully own.
+ *
+ * Two ownership configurations qualify, because both mean "everyone owns this sheet":
+ *   - default ownership set to OWNER (the common "all players" setup), or
+ *   - an explicit per-user OWNER grant covering every non-GM user.
+ *
+ * Items sitting on such an actor belong to the group rather than to one character,
+ * so they are offered alongside the selected player's own unidentified items.
+ * @returns {Actor[]} Qualifying party actors, empty when none is configured.
+ */
+function getSharedPartyActors() {
+    const OWNER   = CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER;
+    const players = game.users.filter(u => !u.isGM);
+
+    return game.actors.filter(actor => {
+        if (actor.type !== PARTY_ACTOR_TYPE) return false;
+        if ((actor.ownership?.default ?? 0) >= OWNER) return true;
+        return players.length > 0 && players.every(u => (actor.ownership?.[u.id] ?? 0) >= OWNER);
+    });
+}
 
 // ==================================================================
 // IDENTIFY APP — GM dialog
@@ -45,7 +78,7 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
         classes:  ["dh-unidentified", "dhui-identify-app"],
         window:   { title: "Request Identify Roll", icon: "fas fa-eye", resizable: false },
         position: { width: 600, height: "auto" },
-        actions:  { cancel: IdentifyApp.prototype._onCancel },
+        actions:  {},
     };
 
     static PARTS = {
@@ -147,6 +180,15 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
     /**
      * Rebuilds only the item-list element without triggering a full app re-render.
      * Called on initial render and whenever the user selector changes.
+     *
+     * The list merges two sources: the selected player's own character and every
+     * shared party actor (see getSharedPartyActors). Party rows carry a badge so the
+     * GM can tell at a glance that the item lives on the group sheet, not the character.
+     *
+     * Rows show the item's REAL name and icon: this dialog is GM-only, and the point
+     * of the list is to let the GM identify which item they are handing out. The masked
+     * presentation values are still what the player receives in the prompt.
+     *
      * @param {Actor|null} actor - The linked character actor of the selected user.
      */
     _refreshItemList(actor) {
@@ -155,53 +197,53 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         listEl.innerHTML = "";
 
-        const items = (actor?.items ?? []).filter(i => isUnidentified(i));
+        /** @type {{ item: Item, party: Actor|null }[]} */
+        const entries = [];
+        for (const item of actor?.items ?? []) {
+            if (isUnidentified(item)) entries.push({ item, party: null });
+        }
+        for (const partyActor of getSharedPartyActors()) {
+            for (const item of partyActor.items) {
+                if (isUnidentified(item)) entries.push({ item, party: partyActor });
+            }
+        }
 
-        if (!items.length) {
+        if (!entries.length) {
             const li = document.createElement("li");
             li.className   = "dhui-identify-empty";
             li.textContent = actor
-                ? "No unidentified items on this actor."
+                ? "No unidentified items on this actor or the party sheet."
                 : "Select a player above.";
             listEl.appendChild(li);
             return;
         }
 
-        for (const item of items) {
+        for (const { item, party } of entries) {
             // Under the non-destructive model, real data lives in the document fields.
-            // Display helpers provide audience-appropriate values (masked when unidentified).
             const realName = item.name;
             const realImg  = item.img;
 
-            // Masked values for the list display — what the player would see
-            const maskedName = getDisplayName(item);
-            const maskedImg  = getDisplayImg(item);
-            const maskedDesc = getDisplayDescription(item);
-
             const li = document.createElement("li");
-            li.className      = "dhui-identify-item";
-            li.dataset.itemId = item.id;
+            li.className       = party ? "dhui-identify-item dhui-identify-item--party" : "dhui-identify-item";
+            li.dataset.itemId  = item.id;
+            // The owning actor is stored explicitly: party items do not live on the
+            // selected player's character, so _onSend cannot assume a single source.
+            li.dataset.actorId = item.parent?.id ?? "";
             li.innerHTML = `
-                <img src="${_esc(maskedImg)}" class="dhui-identify-item__img" alt="">
-                <span class="dhui-identify-item__name">${_esc(maskedName)}</span>
+                <img src="${_esc(realImg)}" class="dhui-identify-item__img" alt="">
+                <span class="dhui-identify-item__name">${_esc(realName)}</span>
+                ${party ? `<i class="fas fa-users dhui-identify-item__party-badge"
+                              title="On the party sheet: ${_esc(party.name)}"></i>` : ""}
                 <div class="dhui-identify-item__actions">
                     <button type="button"
                             class="dhui-identify-item__peek-btn"
                             aria-label="Open sheet for ${_esc(realName)}">
                         <i class="fas fa-search"></i>
                     </button>
-                    <button type="button"
-                            class="dhui-identify-item__sheet-btn"
-                            data-masked-name="${_esc(maskedName)}"
-                            data-masked-img="${_esc(maskedImg)}"
-                            data-masked-desc="${_esc(maskedDesc)}"
-                            aria-label="Description of ${_esc(maskedName)}">
-                        <i class="fas fa-scroll"></i>
-                    </button>
                 </div>
             `;
 
-            // Prevent peek/sheet button clicks from also selecting the row.
+            // Prevent peek button clicks from also selecting the row.
             const actionArea = li.querySelector(".dhui-identify-item__actions");
             actionArea?.addEventListener("click", e => e.stopPropagation());
 
@@ -209,39 +251,6 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
             const peekBtn = li.querySelector(".dhui-identify-item__peek-btn");
             peekBtn?.addEventListener("click", () => {
                 item.sheet.render({ force: true });
-            });
-
-            // ── Sheet button (scroll): show tooltip with masked description on hover ──
-            // Appended to this.element (dialog root) to keep CSS scope (.dhui-identify-app
-            // nesting), but uses position:fixed with viewport coords to escape the
-            // overflow-clipped scroll container (.dhui-identify-item-list).
-            const sheetBtn = li.querySelector(".dhui-identify-item__sheet-btn");
-            sheetBtn?.addEventListener("mouseenter", e => {
-                const btn  = e.currentTarget;
-                const name = btn.dataset.maskedName;
-                const img  = btn.dataset.maskedImg;
-                const desc = btn.dataset.maskedDesc;
-
-                this.element.querySelector(".dhui-identify-item__tooltip")?.remove();
-
-                const tip = document.createElement("div");
-                tip.className = "dhui-identify-item__tooltip";
-                tip.innerHTML = `
-                    <div class="dhui-peek-tip__header">
-                        <img src="${_esc(img)}" class="dhui-peek-tip__img" alt="">
-                        <strong class="dhui-peek-tip__name">${_esc(name)}</strong>
-                    </div>
-                    ${desc ? `<div class="dhui-peek-tip__desc">${desc}</div>` : ""}
-                `;
-
-                // Append to dialog root, position above the button via viewport coords.
-                this.element.appendChild(tip);
-                const rect = btn.getBoundingClientRect();
-                tip.style.left   = `${rect.left}px`;
-                tip.style.bottom = `${window.innerHeight - rect.top + 6}px`;
-            });
-            sheetBtn?.addEventListener("mouseleave", () => {
-                this.element.querySelector(".dhui-identify-item__tooltip")?.remove();
             });
 
             li.addEventListener("click", () => {
@@ -282,7 +291,9 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         const targetUser = game.users.get(targetUserId);
-        const actor      = targetUser?.character;
+        // Resolve through the row's own actor id: the selection may be a party-sheet
+        // item, which is not owned by the target player's character.
+        const actor      = game.actors.get(selectedLi.dataset.actorId) ?? targetUser?.character;
         const item       = actor?.items.get(selectedLi.dataset.itemId);
 
         if (!item) {
@@ -330,14 +341,6 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
         });
 
         ui.notifications.info(`[DH Unidentified] Identify request sent to ${targetUser.name}.`);
-        this.close();
-    }
-
-    /**
-     * Closes the dialog without sending.
-     * Triggered by the Cancel button's data-action="cancel".
-     */
-    _onCancel() {
         this.close();
     }
 }
@@ -423,10 +426,14 @@ export class IdentifyPromptApp extends HandlebarsApplicationMixin(ApplicationV2)
             };
         });
 
-        // Small delay so Daggerheart's click handler starts the roll before close.
+        // Capture phase is required: Daggerheart's handler sits on the enriched
+        // .duality-roll-button and stops propagation, so a bubble-phase listener here
+        // never fired and the prompt stayed open after rolling. Capture runs on the way
+        // down, before the target's own handler, so it cannot be suppressed.
+        // The delay still lets that handler start the roll before the app is torn down.
         container.addEventListener("click", () => {
             setTimeout(() => this.close(), 100);
-        });
+        }, true);
     }
 }
 

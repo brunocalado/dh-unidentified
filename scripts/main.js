@@ -1,16 +1,24 @@
+/*!
+ * Daggerheart: Unidentified Items
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
 // ============================================================
 // dh-unidentified | main.js
 // Module entry point.
 // ============================================================
 
-import { MODULE_ID }                   from "./constants.js";
+import { MODULE_ID, IDENTIFY_PRIVACY } from "./constants.js";
 import { onRenderItemSheet }           from "./sheet-hook.js";
 import { patchActorSheetContextMenus } from "./context-menu.js";
 import {
   isUnidentified, isSupported, getFlags, identifyItem, openMystifyDialog, _esc,
   getDisplayName, getDisplayImg, getDisplayDescription,
 } from "./unidentified.js";
-import { registerSettings, getSfxSettings } from "./settings.js";
+import { registerSettings, getSfxSettings, getIdentifyPrivacy } from "./settings.js";
 import { Identify, IdentifyPromptApp } from "./identify-app.js";
 
 function log(...args) { console.log(`[${MODULE_ID}]`, ...args); }
@@ -78,6 +86,8 @@ Hooks.on("renderDaggerheartMenu", (_app, element) => {
  *     each player client checks targetUserId and opens IdentifyPromptApp if matched.
  *   - identifyResult  (Player → GM): Player sends roll outcome; active GM
  *     applies identification and posts the result chat message.
+ *   - identifySfx     (GM → audience): GM broadcasts the result sound with the
+ *     recipient list it resolved, so chat and audio always share one audience.
  * Called once in the "ready" hook.
  */
 function _registerSocketHandler() {
@@ -87,19 +97,37 @@ function _registerSocketHandler() {
   // Message routing is decided by msg.type so both directions share one listener.
   game.socket.on(SOCKET_ID, async (msg) => {
 
+    // ── identifySfx: GM → audience ───────────────────────────────────────────
+    // Every client receives this and plays only if the GM listed it. Audio has no
+    // server-side audience control (unlike a whispered ChatMessage), so the filter
+    // must happen client-side.
+    if (msg?.type === "identifySfx") {
+      _playIdentifySfx(msg.success, msg.recipients);
+      return;
+    }
+
     // ── identifyResult: Player → GM ──────────────────────────────────────────
     // Only the active GM processes the result — identifyItem() and
     // ChatMessage.create() both require GM-level permissions.
     if (msg?.type === "identifyResult") {
       if (game.users.activeGM?.id !== game.user.id) return;
 
-      const { actorId, itemId, success } = msg;
+      const { actorId, itemId, success, userId } = msg;
       const actor = game.actors.get(actorId);
       const item  = actor?.items.get(itemId);
       if (!item) return;
 
       if (success) await identifyItem(item);
-      await _sendIdentifyResultMessage(item, success);
+
+      // One audience drives both channels, so the chat message and the sound can
+      // never disagree about who is allowed to learn the outcome.
+      const { isPrivate, recipients } = _resolveResultAudience(userId);
+
+      await _sendIdentifyResultMessage(item, success, isPrivate ? recipients : []);
+
+      // socket.emit never echoes to the sender, so this GM plays its own copy.
+      game.socket.emit(SOCKET_ID, { type: "identifySfx", success, recipients });
+      _playIdentifySfx(success, recipients);
 
       // Rerender the actor sheet so inventory rows reflect the new identified state.
       _rerenderSheetsForItem(item);
@@ -250,6 +278,24 @@ function _registerHooks() {
 
   // ── Identify-roll integration ─────────────────────────────
 
+  // Confines Daggerheart's own duality-roll message to the same audience as the
+  // module's result message. Without this, private mode still leaked the outcome:
+  // the module stayed silent, but the system's /dr message posted publicly and every
+  // player could read the total against the visible difficulty.
+  // preCreate hooks run only on the client initiating the creation — the roller —
+  // and _pendingIdentify is not consumed until createChatMessage, so it is still set.
+  Hooks.on("preCreateChatMessage", (message, _data, _options, _userId) => {
+    const pending = game.modules.get(MODULE_ID)._pendingIdentify;
+    if (!pending || Date.now() > pending.expires) return;
+    if (message.type !== "dualityRoll") return;
+
+    const { isPrivate, recipients } = _resolveResultAudience(game.user.id);
+    if (!isPrivate) return;
+
+    // Server-enforced once written: only these users can read the roll.
+    message.updateSource({ whisper: recipients });
+  });
+
   // Detects the /dr roll result on the player's own client (the only client with
   // _pendingIdentify set) and delegates identification to the GM via module socket.
   Hooks.on("createChatMessage", (message) => {
@@ -268,17 +314,17 @@ function _registerHooks() {
 
     const success = rollOptions.success === true;
 
-    // Audible feedback for the rolling player — only this client has _pendingIdentify set.
-    const sfx  = getSfxSettings();
-    const path = success ? sfx.successPath : sfx.failurePath;
-    if (path) foundry.audio.AudioHelper.play({ src: path, volume: 0.8, loop: false });
-
+    // The sound is NOT played here. Audience is a GM-owned decision (world setting),
+    // so the GM resolves it once and broadcasts identifySfx to exactly those clients —
+    // this player included. Playing locally as well would double the sound.
     // Emit to all clients — the GM-side socket listener filters by activeGM.
     game.socket.emit(`module.${MODULE_ID}`, {
       type:    "identifyResult",
       actorId: pending.actorId,
       itemId:  pending.itemId,
       success,
+      // Identifies the roller so the GM can whisper the result back in private mode.
+      userId:  game.user.id,
     });
   });
 
@@ -471,6 +517,44 @@ function _hideUnidentifiedDetails(actor, element) {
   });
 }
 
+// ── Identify result audience ──────────────────────────────────
+
+/**
+ * Resolves who may learn the outcome of an identify roll, per the world privacy setting.
+ * Called on the active GM only, immediately before the result is dispatched.
+ *
+ * @param {string} [rollerUserId] - User id of the player who made the roll.
+ * @returns {{ isPrivate: boolean, recipients: string[] }} The mode plus the concrete
+ *   user ids allowed to see the chat message and hear the sound.
+ */
+function _resolveResultAudience(rollerUserId) {
+  const isPrivate = getIdentifyPrivacy() === IDENTIFY_PRIVACY.PRIVATE;
+
+  if (!isPrivate) return { isPrivate, recipients: game.users.map(u => u.id) };
+
+  // Every GM, not just the active one, stays in the loop on a private result.
+  const ids = new Set(ChatMessage.getWhisperRecipients("GM").map(u => u.id));
+  if (rollerUserId) ids.add(rollerUserId);
+  return { isPrivate, recipients: [...ids] };
+}
+
+/**
+ * Plays the success or failure cue, but only when this client is in the audience.
+ * Called on every client from the identifySfx socket branch, and directly by the
+ * GM that emitted it (socket.emit does not echo to its own sender).
+ *
+ * @param {boolean}  success      - Whether the identify roll succeeded.
+ * @param {string[]} [recipients] - User ids allowed to hear it; omitted means everyone.
+ * @returns {void}
+ */
+function _playIdentifySfx(success, recipients) {
+  if (Array.isArray(recipients) && !recipients.includes(game.user.id)) return;
+
+  const sfx  = getSfxSettings();
+  const path = success ? sfx.successPath : sfx.failurePath;
+  if (path) foundry.audio.AudioHelper.play({ src: path, volume: 0.8, loop: false });
+}
+
 // ── Identify result chat message ──────────────────────────────
 
 /**
@@ -481,11 +565,13 @@ function _hideUnidentifiedDetails(actor, element) {
  *   - On failure: identified=false remains, so getDisplayName returns the masked alias.
  *     True identity is not leaked to chat.
  *
- * @param {Item}    item    - The item (post-update on success, still unidentified on failure)
- * @param {boolean} success - Whether the identification roll succeeded
+ * @param {Item}     item      - The item (post-update on success, still unidentified on failure)
+ * @param {boolean}  success   - Whether the identification roll succeeded
+ * @param {string[]} [whisper] - User ids to whisper the message to. Empty (the default)
+ *   posts publicly. Unlike the sound, this audience is enforced server-side.
  * @returns {Promise<void>}
  */
-async function _sendIdentifyResultMessage(item, success) {
+async function _sendIdentifyResultMessage(item, success, whisper = []) {
   // After a successful identifyItem(), identified=true → getDisplayName returns item.name.
   // After a failed roll, identified=false → getDisplayName returns the masked alias.
   const displayName = getDisplayName(item);
@@ -517,6 +603,7 @@ async function _sendIdentifyResultMessage(item, success) {
     speaker: ChatMessage.getSpeaker(),
     content,
     style:   CONST.CHAT_MESSAGE_STYLES.OTHER,
+    whisper,
   });
 }
 

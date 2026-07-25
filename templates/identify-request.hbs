@@ -3,8 +3,6 @@
     <!-- LEFT: target player + unidentified item list -->
     <div class="dhui-identify-left">
 
-        <h3 class="dhui-identify-section-title">Target</h3>
-
         <div class="dhui-identify-field">
             <label class="dhui-identify-label">Player</label>
             <select name="targetUser" class="dhui-identify-select">
@@ -30,8 +28,6 @@
 
     <!-- RIGHT: roll configuration -->
     <div class="dhui-identify-right">
-
-        <h3 class="dhui-identify-section-title">Roll Configuration</h3>
 
         <div class="dhui-identify-field">
             <label class="dhui-identify-label">Trait</label>
@@ -59,10 +55,12 @@
         <div class="dhui-identify-field">
             <div class="dhui-identify-cb-row">
                 <label class="dhui-identify-cb-label">
-                    <input type="checkbox" name="advantage"> Advantage
+                    Advantage
+                    <input type="checkbox" class="dhui-identify-toggle" name="advantage">
                 </label>
                 <label class="dhui-identify-cb-label">
-                    <input type="checkbox" name="disadvantage"> Disadvantage
+                    Disadvantage
+                    <input type="checkbox" class="dhui-identify-toggle" name="disadvantage">
                 </label>
             </div>
         </div>
@@ -70,9 +68,6 @@
         <div class="dhui-identify-actions">
             <button type="button" class="dhui-identify-send-btn" data-action="send">
                 <i class="fas fa-paper-plane"></i> Send to Player
-            </button>
-            <button type="button" class="dhui-identify-cancel-btn" data-action="cancel">
-                Cancel
             </button>
         </div>
 

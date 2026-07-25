@@ -1,3 +1,11 @@
+/*!
+ * Daggerheart: Unidentified Items
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
 /* ============================================================
    dh-unidentified | identify-app.css
    GM Identify App, Player Identify Request dialog, and
@@ -41,19 +49,6 @@
 
   .dhui-identify-field--items {
     flex: 1;
-  }
-
-  /* Section title above each column (added in template) */
-  .dhui-identify-section-title {
-    font-family: var(--dhui-font-heading);
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--dhui-accent-text);
-    border-bottom: 1px dashed var(--dhui-border-muted);
-    padding-bottom: 6px;
-    margin: 0 0 6px;
   }
 
   .dhui-identify-label {
@@ -110,14 +105,15 @@
     padding: 7px 10px;
     cursor: pointer;
     border-bottom: 1px solid var(--dhui-border-muted);
-    transition: background var(--dhui-transition);
-    position: relative; /* Required to anchor the absolute-positioned peek tooltip */
+    transition: background var(--dhui-transition), box-shadow var(--dhui-transition);
 
     &:last-child {
       border-bottom: none;
     }
 
-    &:hover {
+    /* Excluding the selected row keeps hover from overriding the selected
+       background purely on source order — no !important needed. */
+    &:hover:not(.dhui-identify-item--selected) {
       background: #14191f;
     }
   }
@@ -130,10 +126,25 @@
     flex-shrink: 0;
   }
 
+  /* Rows show the item's real identity — this dialog is GM-only. */
   .dhui-identify-item__name {
     font-size: 13px;
     color: var(--dhui-text);
-    font-style: italic;
+  }
+
+  /* Items sourced from the shared party sheet get a purple edge so they read
+     as group inventory at a glance, distinct from the character's own items. */
+  .dhui-identify-item--party {
+    border-left: 3px solid var(--dhui-purple);
+    padding-left: 7px;
+  }
+
+  /* Marks an item that lives on the shared party sheet rather than on the
+     selected player's character. */
+  .dhui-identify-item__party-badge {
+    color: var(--dhui-purple-light);
+    font-size: 11px;
+    flex-shrink: 0;
   }
 
   /* Item row: actions wrapper — two icon buttons aligned to the right */
@@ -145,9 +156,7 @@
     flex-shrink: 0;
   }
 
-  /* Shared style for peek and sheet icon buttons */
-  .dhui-identify-item__peek-btn,
-  .dhui-identify-item__sheet-btn {
+  .dhui-identify-item__peek-btn {
     width: 24px;
     height: 24px;
     padding: 0;
@@ -170,63 +179,38 @@
     border-color: var(--dhui-accent-text);
   }
 
-  .dhui-identify-item__sheet-btn:hover {
-    background: #001e14;
-    color: var(--dhui-teal);
-    border-color: var(--dhui-teal);
-  }
-
-  /* Tooltip mounted on document.body (position:fixed) to escape the overflow-clipped
-     scroll container. Coordinates are set dynamically in _refreshItemList. */
-  .dhui-identify-item__tooltip {
-    position: fixed;
-    z-index: 9999;
-    min-width: 220px;
-    max-width: 320px;
-    background: var(--dhui-surface);
-    border: 1px solid var(--dhui-accent-text);
-    border-radius: 4px;
-    padding: 10px 12px;
-    box-shadow: 0 4px 16px #000;
-    pointer-events: none;
-  }
-
-  .dhui-peek-tip__header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 6px;
-  }
-
-  .dhui-peek-tip__img {
-    width: 32px;
-    height: 32px;
-    object-fit: contain;
-    flex-shrink: 0;
-    border: none;
-  }
-
-  .dhui-peek-tip__name {
-    color: var(--dhui-accent-text);
-    font-size: 13px;
-    font-weight: 700;
-    line-height: 1.3;
-  }
-
-  .dhui-peek-tip__desc {
-    color: var(--dhui-text-muted);
-    font-size: 11px;
-    line-height: 1.5;
-    margin: 0;
-    max-height: 80px;
-    overflow-y: auto;
-  }
-
-  /* Selected item — teal outline matching existing .dhui-unidentified-row */
+  /* Selected item.
+     The ring MUST be an inset box-shadow rather than an outline or border:
+     .dhui-identify-item-list is clipped on both axes (overflow-y:auto computes
+     overflow-x to auto as well), so anything painted outside the row's border box
+     loses its left and right edges against the container walls.
+     Layers, outward-in: 1px teal ring, 3px teal accent bar on the leading edge,
+     and a soft inner glow that fades the tint toward the row centre. */
   .dhui-identify-item--selected {
-    background: var(--dhui-teal-row-bg) !important;
-    outline: 1px solid var(--dhui-teal);
-    border-radius: 3px;
+    background: var(--dhui-teal-row-bg);
+    box-shadow: inset  0 0 0 1px var(--dhui-teal),
+                inset  3px 0 0 0 var(--dhui-teal),
+                inset  0 0 14px -4px rgba(32, 201, 124, 0.55);
+    /* The divider would otherwise draw a second line just below the ring. */
+    border-bottom-color: transparent;
+  }
+
+  .dhui-identify-item--selected .dhui-identify-item__name {
+    color: var(--dhui-teal-light);
+    font-weight: 600;
+  }
+
+  .dhui-identify-item--selected .dhui-identify-item__peek-btn {
+    border-color: var(--dhui-teal-muted);
+    color: var(--dhui-teal-light);
+  }
+
+  /* A party row already carries a purple source stripe on its leading edge, so the
+     teal accent bar is dropped there — the ring, tint and teal name still mark the
+     selection without stacking two stripes on top of each other. */
+  .dhui-identify-item--party.dhui-identify-item--selected {
+    box-shadow: inset 0 0 0 1px var(--dhui-teal),
+                inset 0 0 14px -4px rgba(32, 201, 124, 0.55);
   }
 
   /* Trait grid — 2×3 */
@@ -304,7 +288,7 @@
     }
   }
 
-  /* Advantage / Disadvantage checkboxes */
+  /* Advantage / Disadvantage — iOS-style toggle switches */
   .dhui-identify-cb-row {
     display: flex;
     justify-content: center;
@@ -317,18 +301,77 @@
   .dhui-identify-cb-label {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     color: var(--dhui-text);
     cursor: pointer;
     font-size: 0.9em;
     font-weight: normal;
     text-transform: none;
     letter-spacing: normal;
+  }
 
-    input {
-      accent-color: var(--dhui-accent-text);
-      transform: scale(1.2);
-      margin: 0;
+  /* Opt-in via .dhui-identify-toggle so other checkboxes keep the default skin.
+     `!important` on the reset properties is required: Foundry core's own checkbox
+     skin (foundry2.css, layer elements.forms) otherwise paints its native border,
+     background and check glyph on top of this custom toggle. The core checkmark
+     lives on ::after (this rule only redefines ::before for the sliding thumb),
+     so ::after must be cleared separately or the glyph shows through the track. */
+  input[type="checkbox"].dhui-identify-toggle {
+    --dhui-toggle-width:  2.4rem;
+    --dhui-toggle-height: 1.4rem;
+    --dhui-toggle-inset:  0.125rem;
+
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    position: relative;
+    width:  var(--dhui-toggle-width)  !important;
+    height: var(--dhui-toggle-height) !important;
+    margin: 0;
+    padding: 0;
+    border: none !important;
+    border-radius: calc(var(--dhui-toggle-height) / 2);
+    background: #555 !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    cursor: pointer;
+    vertical-align: middle;
+    flex: none;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+
+    &::before {
+      content: "";
+      position: absolute;
+      top:  var(--dhui-toggle-inset);
+      left: var(--dhui-toggle-inset);
+      width:  calc(var(--dhui-toggle-height) - (var(--dhui-toggle-inset) * 2));
+      height: calc(var(--dhui-toggle-height) - (var(--dhui-toggle-inset) * 2));
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+      transition: transform 0.2s ease;
+    }
+
+    &::after {
+      content: none !important;
+    }
+
+    &:checked {
+      background: var(--dhui-accent) !important;
+      box-shadow: 0 0 8px var(--dhui-accent) !important;
+    }
+
+    &:checked::before {
+      transform: translateX(calc(var(--dhui-toggle-width) - var(--dhui-toggle-height)));
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--dhui-accent);
+      outline-offset: 2px;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
   }
 
@@ -357,24 +400,6 @@
     &:hover {
       background: linear-gradient(135deg, #3a2a08, #2a1e04);
       box-shadow: 0 0 8px var(--dhui-accent);
-    }
-  }
-
-  .dhui-identify-cancel-btn {
-    background: transparent;
-    color: var(--dhui-text-dim);
-    border: 1px solid var(--dhui-border-muted);
-    padding: 7px;
-    width: 100%;
-    font-size: 0.85em;
-    text-transform: uppercase;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: color 0.2s, border-color 0.2s;
-
-    &:hover {
-      color: var(--dhui-text);
-      border-color: var(--dhui-text-dim);
     }
   }
 }
