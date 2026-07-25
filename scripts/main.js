@@ -60,7 +60,7 @@ Hooks.on("renderDaggerheartMenu", (_app, element) => {
   btn.type = "button";
   btn.innerHTML = `<i class="fas fa-eye"></i> Identify Items`;
   btn.classList.add("dh-custom-btn");
-  btn.style.marginTop = "10px";
+  btn.style.marginTop = "0px";
   btn.style.width = "100%";
 
   btn.onclick = () => Identify.Open();
