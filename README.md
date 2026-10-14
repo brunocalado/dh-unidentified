@@ -133,7 +133,7 @@ The module ships in English. To translate it, open an [issue](https://github.com
 Install via the Foundry VTT Module browser or use this manifest link:
 
 ```
-https://raw.githubusercontent.com/brunocalado/dh-unidentified/main/module.json
+https://github.com/brunocalado/dh-unidentified/releases/latest/download/module.json
 ```
 
 ## Credits & License
