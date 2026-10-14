@@ -1,0 +1,151 @@
+{
+  "DHUI": {
+    "Prefix": "[DH Unidentified]",
+    "Settings": {
+      "Privacy": {
+        "Name": "Confidentialité du résultat d'identification",
+        "Hint": "Qui connaît le résultat d'un jet d'identification — à la fois le message de chat et le son de réussite/échec. Public : tous les participants connectés à la table. Privé : uniquement le joueur qui a lancé le jet et le MJ.",
+        "Public": "Public — tout le monde à la table",
+        "Private": "Privé — uniquement le joueur et le MJ"
+      },
+      "Guide": {
+        "Name": "Guide du module",
+        "Label": "Ouvrir le guide du module",
+        "Hint": "Comment utiliser DH Unidentified : acteurs liés, masquer des objets et les identifier."
+      },
+      "Masks": {
+        "Name": "Masques par défaut",
+        "Label": "Configurer les masques par défaut",
+        "Hint": "Définit le nom, la description et l'icône masqués par défaut pour chaque type d'objet. Ce sont des valeurs d'affichage uniquement — les données réelles de l'objet ne sont jamais modifiées lors du masquage."
+      }
+    },
+    "Types": {
+      "weapon": "Arme",
+      "armor": "Armure",
+      "loot": "Butin",
+      "consumable": "Consommable"
+    },
+    "Traits": {
+      "agility": "Agilité",
+      "strength": "Force",
+      "finesse": "Finesse",
+      "instinct": "Instinct",
+      "presence": "Présence",
+      "knowledge": "Savoir"
+    },
+    "Defaults": {
+      "Description": "La nature de cet objet est inconnue.",
+      "Names": {
+        "weapon": "Arme non identifiée",
+        "armor": "Armure non identifiée",
+        "loot": "Butin non identifié",
+        "consumable": "Consommable non identifié"
+      }
+    },
+    "Menu": {
+      "IdentifyItems": "Identifier des objets",
+      "IdentifyItem": "Identifier l'objet",
+      "MystifyItem": "Masquer l'objet"
+    },
+    "Common": {
+      "Unidentified": "Non identifié",
+      "Cancel": "Annuler",
+      "Save": "Enregistrer",
+      "BrowseFiles": "Parcourir les fichiers",
+      "BrowseAudio": "Parcourir les fichiers audio"
+    },
+    "Notify": {
+      "UnsupportedType": "Le type d'objet « {type} » n'est pas pris en charge.",
+      "NowUnidentified": "« {name} » est maintenant non identifié (masqué sous le nom « {masked} »).",
+      "AlreadyIdentified": "Cet objet est déjà identifié.",
+      "Identified": "« {name} » a été identifié !",
+      "OnlyGMEquip": "Seul le MJ peut équiper ou déséquiper des objets non identifiés.",
+      "NoEdit": "Cet objet ne peut pas être modifié tant qu'il n'est pas identifié.",
+      "NoUse": "Cet objet ne peut pas être utilisé tant qu'il n'est pas identifié.",
+      "SelectPlayer": "Sélectionnez d'abord un joueur.",
+      "SelectItem": "Sélectionnez d'abord un objet non identifié.",
+      "SelectTrait": "Sélectionnez d'abord un trait.",
+      "ItemNotFound": "Objet introuvable — il a peut-être été supprimé.",
+      "RequestSent": "Demande d'identification envoyée à {name}.",
+      "MasksSaved": "Masques par défaut enregistrés."
+    },
+    "Mystify": {
+      "Title": "Identité de l'objet — DH Unidentified",
+      "Intro": "Configurez ce que le <strong>joueur voit</strong> tant que l'objet n'est pas identifié.",
+      "MaskedName": "Nom masqué",
+      "MaskedIcon": "Chemin de l'icône masquée",
+      "IconPreview": "Aperçu de l'icône",
+      "MaskedDescription": "Description masquée (visible par le joueur)",
+      "ApplyMask": "Appliquer le masque",
+      "Mystify": "Masquer",
+      "Identify": "Identifier"
+    },
+    "Masks": {
+      "Title": "Masques par défaut — DH Unidentified",
+      "Sounds": "Sons",
+      "MaskedName": "Nom masqué",
+      "MaskedIcon": "Chemin de l'icône masquée",
+      "MaskedDescription": "Description masquée",
+      "DescriptionPlaceholder": "Un objet mystérieux.",
+      "UseSettingsImg": "Utiliser l'image masquée des paramètres",
+      "UseSettingsImgTooltip": "ACTIVÉ : utilise l'image définie ci-dessus comme icône initiale. DÉSACTIVÉ : utilise l'image propre à l'objet.",
+      "SoundsHint": "Effets sonores joués chez le joueur qui lance le jet après un jet d'identification.",
+      "SuccessSound": "Son de réussite",
+      "FailureSound": "Son d'échec"
+    },
+    "Identify": {
+      "RequestTitle": "Demander un jet d'identification",
+      "Player": "Joueur",
+      "SelectPlayerOption": "— Sélectionner un joueur —",
+      "UnidentifiedItem": "Objet non identifié",
+      "SelectPlayerAbove": "Sélectionnez un joueur ci-dessus.",
+      "NoUnidentified": "Aucun objet non identifié sur cet acteur ni sur la fiche de groupe.",
+      "OnPartySheet": "Sur la fiche de groupe : {name}",
+      "OpenSheet": "Ouvrir la fiche de {name}",
+      "Trait": "Trait",
+      "Difficulty": "Difficulté",
+      "Advantage": "Avantage",
+      "Disadvantage": "Désavantage",
+      "SendToPlayer": "Envoyer au joueur",
+      "RollLabel": "Identification : {name}",
+      "PromptTitle": "Action requise",
+      "DualityRoll": "Jet de dualité",
+      "Check": "Test",
+      "PlayerTitle": "Identifier l'objet"
+    },
+    "Result": {
+      "SuccessHeader": "Objet identifié !",
+      "FailureHeader": "Échec de l'identification",
+      "SuccessBody": "<em>{name}</em> a été identifié — sa véritable nature est maintenant révélée.",
+      "FailureBody": "La nature de <em>{name}</em> reste cachée.",
+      "MaskedAs": "Masqué sous : « {name} »"
+    },
+    "Guide": {
+      "Title": "DH Unidentified — Guide du module",
+      "RequirementTitle": "Prérequis : acteur lié",
+      "RequirementBody": "Pour demander un jet d'identification, <strong>le joueur doit avoir un personnage assigné à son compte utilisateur</strong>. La fenêtre de demande de jet d'identification ne liste que les utilisateurs connectés, qui ne sont pas MJ et qui ont un tel personnage — sans lui, il n'y a pas d'inventaire à consulter.",
+      "AssignLabel": "Comment assigner un personnage à un utilisateur :",
+      "AssignStep1": "Faites un clic droit sur le nom de l'utilisateur dans la liste des joueurs et ouvrez <strong>Configuration de l'utilisateur</strong>.",
+      "AssignStep2": "Choisissez l'acteur de cet utilisateur. L'utilisateur doit être propriétaire de cet acteur.",
+      "AssignStep3": "Cliquez sur <strong>Enregistrer les modifications</strong>.",
+      "HidingTitle": "Masquer un objet (Mystify)",
+      "HidingBody": "Fonctionne sur les <strong>armes, armures, butins et consommables</strong>. Faites un clic droit sur l'objet dans l'inventaire d'un acteur et choisissez <strong>Masquer l'objet</strong>, ou ouvrez la fiche de l'objet et utilisez le menu <strong>&#8942;</strong> de l'en-tête. Une fenêtre vous permet de définir le nom, la description et l'icône masqués que les joueurs verront.",
+      "HidingNote": "Rien n'est écrit sur l'objet lui-même. Le nom, l'image et la description réels restent en permanence dans le document — le masque n'est qu'un affichage, appliqué au rendu de la fiche. Désactivez le module et chaque objet redevient immédiatement normal.",
+      "RevealingTitle": "Révéler un objet (Identify)",
+      "RevealingBody": "Pour révéler un objet immédiatement, faites un clic droit dessus et choisissez <strong>Identifier l'objet</strong>, ou utilisez le menu <strong>&#8942;</strong> de sa fiche et confirmez avec <strong>Identifier</strong>. Pour que les joueurs le méritent, envoyez-leur plutôt un jet — voir ci-dessous.",
+      "RollTitle": "Demander un jet d'identification",
+      "RollBody": "Ouvrez <strong>Identifier des objets</strong> depuis le menu Daggerheart, ou exécutez <strong>Identify.Open()</strong> dans une macro.",
+      "RollStep1": "Choisissez le joueur à gauche. Ses objets non identifiés sont listés en dessous.",
+      "RollStep2": "Cliquez sur un objet pour le sélectionner. La loupe ouvre sa vraie fiche si vous voulez y jeter un œil.",
+      "RollStep3": "Choisissez un trait et une difficulté, et activez <strong>Avantage</strong> ou <strong>Désavantage</strong> si la situation l'exige.",
+      "RollStep4": "Cliquez sur <strong>Envoyer au joueur</strong>. Une invite apparaît sur son écran.",
+      "RollNote": "Le joueur ne voit dans cette invite que le nom et l'icône masqués. En cas de réussite, l'objet se révèle ; en cas d'échec, il reste caché et vous pouvez réessayer plus tard.",
+      "PartyTitle": "Objets de la fiche de groupe",
+      "PartyBody": "Les objets non identifiés présents sur un <strong>acteur de groupe</strong> sont aussi proposés, marqués par un bord violet et une icône de groupe. N'importe quel joueur peut être invité à en identifier un — l'objet n'a jamais besoin d'être sur son propre personnage. L'acteur de groupe est éligible lorsque <strong>chaque joueur en est propriétaire</strong>, soit via la propriété par défaut réglée sur Propriétaire, soit via un accès Propriétaire explicite pour chaque joueur.",
+      "PrivacyTitle": "Confidentialité du résultat",
+      "PrivacyBody": "Dans les paramètres du module, <strong>Confidentialité du résultat d'identification</strong> contrôle qui connaît l'issue. <strong>Public</strong> (par défaut) montre le résultat à toute la table. <strong>Privé</strong> garde le jet, le message de résultat et le son entre le joueur qui a lancé et le MJ. Ce paramètre est réservé au MJ et s'applique à toutes les demandes.",
+      "DefaultsTitle": "Valeurs par défaut et sons",
+      "DefaultsBody": "<strong>Configurer les masques par défaut</strong> dans les paramètres du module définit le nom, la description et l'icône masqués proposés pour chaque type d'objet, de sorte que masquer se fait généralement en un clic. La même fenêtre règle les sons de réussite et d'échec joués à la résolution d'un jet."
+    }
+  }
+}

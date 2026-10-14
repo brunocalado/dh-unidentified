@@ -1,0 +1,151 @@
+{
+  "DHUI": {
+    "Prefix": "[DH Unidentified]",
+    "Settings": {
+      "Privacy": {
+        "Name": "Identify Result Privacy",
+        "Hint": "Who learns the outcome of an identify roll — both the chat message and the success/failure sound. Public: everyone connected to the table. Private: only the player who rolled and the GM.",
+        "Public": "Public — everyone at the table",
+        "Private": "Private — only the roller and the GM"
+      },
+      "Guide": {
+        "Name": "Module Guide",
+        "Label": "Open Module Guide",
+        "Hint": "How to use DH Unidentified: linked actors, hiding items, and identifying them."
+      },
+      "Masks": {
+        "Name": "Default Masks",
+        "Label": "Configure Default Masks",
+        "Hint": "Set default masked name, description, and icon per item type. These are display-only presentation values — the item's real data is never modified when mystifying."
+      }
+    },
+    "Types": {
+      "weapon": "Weapon",
+      "armor": "Armor",
+      "loot": "Loot",
+      "consumable": "Consumable"
+    },
+    "Traits": {
+      "agility": "Agility",
+      "strength": "Strength",
+      "finesse": "Finesse",
+      "instinct": "Instinct",
+      "presence": "Presence",
+      "knowledge": "Knowledge"
+    },
+    "Defaults": {
+      "Description": "The nature of this item is unknown.",
+      "Names": {
+        "weapon": "Unidentified Weapon",
+        "armor": "Unidentified Armor",
+        "loot": "Unidentified Loot",
+        "consumable": "Unidentified Consumable"
+      }
+    },
+    "Menu": {
+      "IdentifyItems": "Identify Items",
+      "IdentifyItem": "Identify Item",
+      "MystifyItem": "Mystify Item"
+    },
+    "Common": {
+      "Unidentified": "Unidentified",
+      "Cancel": "Cancel",
+      "Save": "Save",
+      "BrowseFiles": "Browse files",
+      "BrowseAudio": "Browse audio files"
+    },
+    "Notify": {
+      "UnsupportedType": "Item type \"{type}\" is not supported.",
+      "NowUnidentified": "\"{name}\" is now unidentified (masked as \"{masked}\").",
+      "AlreadyIdentified": "This item is already identified.",
+      "Identified": "\"{name}\" has been identified!",
+      "OnlyGMEquip": "Only the GM can equip or unequip unidentified items.",
+      "NoEdit": "This item cannot be edited while unidentified.",
+      "NoUse": "This item cannot be used while unidentified.",
+      "SelectPlayer": "Select a player first.",
+      "SelectItem": "Select an unidentified item first.",
+      "SelectTrait": "Select a trait first.",
+      "ItemNotFound": "Item not found — it may have been removed.",
+      "RequestSent": "Identify request sent to {name}.",
+      "MasksSaved": "Default masks saved."
+    },
+    "Mystify": {
+      "Title": "Item Identity — DH Unidentified",
+      "Intro": "Configure what the <strong>player sees</strong> while the item is unidentified.",
+      "MaskedName": "Masked Name",
+      "MaskedIcon": "Masked Icon Path",
+      "IconPreview": "Icon preview",
+      "MaskedDescription": "Masked Description (visible to player)",
+      "ApplyMask": "Apply Mask",
+      "Mystify": "Mystify",
+      "Identify": "Identify"
+    },
+    "Masks": {
+      "Title": "Default Masks — DH Unidentified",
+      "Sounds": "Sounds",
+      "MaskedName": "Masked Name",
+      "MaskedIcon": "Masked Icon Path",
+      "MaskedDescription": "Masked Description",
+      "DescriptionPlaceholder": "A mysterious item.",
+      "UseSettingsImg": "Use masked image from settings",
+      "UseSettingsImgTooltip": "ON: use the image defined above as the initial icon. OFF: use the item's own image.",
+      "SoundsHint": "Sound effects played on the rolling player's client after an identify roll.",
+      "SuccessSound": "Success Sound",
+      "FailureSound": "Failure Sound"
+    },
+    "Identify": {
+      "RequestTitle": "Request Identify Roll",
+      "Player": "Player",
+      "SelectPlayerOption": "— Select a player —",
+      "UnidentifiedItem": "Unidentified Item",
+      "SelectPlayerAbove": "Select a player above.",
+      "NoUnidentified": "No unidentified items on this actor or the party sheet.",
+      "OnPartySheet": "On the party sheet: {name}",
+      "OpenSheet": "Open sheet for {name}",
+      "Trait": "Trait",
+      "Difficulty": "Difficulty",
+      "Advantage": "Advantage",
+      "Disadvantage": "Disadvantage",
+      "SendToPlayer": "Send to Player",
+      "RollLabel": "Identify: {name}",
+      "PromptTitle": "Action Required",
+      "DualityRoll": "Duality Roll",
+      "Check": "Check",
+      "PlayerTitle": "Identify the Item"
+    },
+    "Result": {
+      "SuccessHeader": "Item Identified!",
+      "FailureHeader": "Identification Failed",
+      "SuccessBody": "<em>{name}</em> has been identified — its true nature is now revealed.",
+      "FailureBody": "The nature of <em>{name}</em> remains hidden.",
+      "MaskedAs": "Masked as: \"{name}\""
+    },
+    "Guide": {
+      "Title": "DH Unidentified — Module Guide",
+      "RequirementTitle": "Requirement: Linked Actor",
+      "RequirementBody": "To request an identify roll, <strong>the player must have a character assigned to their user account</strong>. The Request Identify Roll dialog only lists users who are connected, are not GMs, and have such a character — without one there is no inventory to read.",
+      "AssignLabel": "How to assign a character to a user:",
+      "AssignStep1": "Right-click the user name in the Players list and open <strong>User Configuration</strong>.",
+      "AssignStep2": "Pick the actor for that user. The user must have ownership of that actor.",
+      "AssignStep3": "Click <strong>Save Changes</strong>.",
+      "HidingTitle": "Hiding an Item (Mystify)",
+      "HidingBody": "Works on <strong>weapons, armor, loot and consumables</strong>. Right-click the item in an actor's inventory and choose <strong>Mystify Item</strong>, or open the item sheet and use the <strong>&#8942;</strong> header menu. A dialog lets you set the masked name, description and icon that players will see.",
+      "HidingNote": "Nothing is written over the item itself. The real name, image and description stay in the document at all times — the mask is presentation only, applied when the sheet renders. Disable the module and every item is immediately back to normal.",
+      "RevealingTitle": "Revealing an Item (Identify)",
+      "RevealingBody": "To reveal an item straight away, right-click it and choose <strong>Identify Item</strong>, or use the <strong>&#8942;</strong> menu on its sheet and confirm with <strong>Identify</strong>. To make the players earn it, send them a roll instead — see below.",
+      "RollTitle": "Requesting an Identify Roll",
+      "RollBody": "Open <strong>Identify Items</strong> from the Daggerheart Menu, or run <strong>Identify.Open()</strong> in a macro.",
+      "RollStep1": "Pick the player on the left. Their unidentified items are listed below.",
+      "RollStep2": "Click an item to select it. The magnifier opens its real sheet if you need a look.",
+      "RollStep3": "Pick a trait and a difficulty, and toggle <strong>Advantage</strong> or <strong>Disadvantage</strong> if the situation calls for it.",
+      "RollStep4": "Click <strong>Send to Player</strong>. A prompt appears on their screen.",
+      "RollNote": "The player only ever sees the masked name and icon in that prompt. On a success the item reveals itself; on a failure it stays hidden and you can try again later.",
+      "PartyTitle": "Party Sheet Items",
+      "PartyBody": "Unidentified items sitting on a <strong>party actor</strong> are offered too, marked with a purple edge and a group icon. Any player can be asked to identify one — the item never has to be on their own character. The party actor qualifies when <strong>every player owns it</strong>, either through default ownership set to Owner or an explicit Owner grant for each player.",
+      "PrivacyTitle": "Result Privacy",
+      "PrivacyBody": "In module settings, <strong>Identify Result Privacy</strong> controls who learns the outcome. <strong>Public</strong> (the default) shows the result to the whole table. <strong>Private</strong> keeps the roll, the result message and the sound between the player who rolled and the GM. This setting is GM-only and applies to every request.",
+      "DefaultsTitle": "Defaults and Sounds",
+      "DefaultsBody": "<strong>Configure Default Masks</strong> in module settings sets the masked name, description and icon suggested for each item type, so mystifying is usually one click and done. The same dialog sets the success and failure sounds played when a roll resolves."
+    }
+  }
+}

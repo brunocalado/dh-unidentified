@@ -3,9 +3,9 @@
     <img src="{{maskedImg}}" class="dhui-ip-img" alt="{{maskedName}}">
     <p class="dhui-ip-details">
         {{#if difficulty}}
-            Difficulty: <span class="dhui-ip-accent">{{difficulty}}</span><br>
+            {{localize "DHUI.Identify.Difficulty"}}: <span class="dhui-ip-accent">{{difficulty}}</span><br>
         {{/if}}
-        Check: <span class="dhui-ip-accent">{{traitLabel}}</span>
+        {{localize "DHUI.Identify.Check"}}: <span class="dhui-ip-accent">{{traitLabel}}</span>
     </p>
     {{!-- Daggerheart's renderHandlebarsApplication hook binds the click handler
          on .duality-roll-button after this template is rendered, so the player's

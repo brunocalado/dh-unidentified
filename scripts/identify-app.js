@@ -76,7 +76,7 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
         id:       "dhui-identify-app",
         tag:      "form",
         classes:  ["dh-unidentified", "dhui-identify-app"],
-        window:   { title: "Request Identify Roll", icon: "fas fa-eye", resizable: false },
+        window:   { title: "DHUI.Identify.RequestTitle", icon: "fas fa-eye", resizable: false },
         position: { width: 600, height: "auto" },
         actions:  {},
     };
@@ -106,7 +106,7 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
         return {
             users,
             selectedUserId: this.#selectedUserId,
-            traits:      TRAITS,
+            traits:      TRAITS.map(t => ({ id: t, label: game.i18n.localize(`DHUI.Traits.${t}`) })),
             difficulty:  15,
             activeTrait: getLastIdentifyTrait(),
         };
@@ -212,8 +212,8 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
             const li = document.createElement("li");
             li.className   = "dhui-identify-empty";
             li.textContent = actor
-                ? "No unidentified items on this actor or the party sheet."
-                : "Select a player above.";
+                ? game.i18n.localize("DHUI.Identify.NoUnidentified")
+                : game.i18n.localize("DHUI.Identify.SelectPlayerAbove");
             listEl.appendChild(li);
             return;
         }
@@ -233,11 +233,11 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 <img src="${_esc(realImg)}" class="dhui-identify-item__img" alt="">
                 <span class="dhui-identify-item__name">${_esc(realName)}</span>
                 ${party ? `<i class="fas fa-users dhui-identify-item__party-badge"
-                              title="On the party sheet: ${_esc(party.name)}"></i>` : ""}
+                              title="${_esc(game.i18n.format("DHUI.Identify.OnPartySheet", { name: party.name }))}"></i>` : ""}
                 <div class="dhui-identify-item__actions">
                     <button type="button"
                             class="dhui-identify-item__peek-btn"
-                            aria-label="Open sheet for ${_esc(realName)}">
+                            aria-label="${_esc(game.i18n.format("DHUI.Identify.OpenSheet", { name: realName }))}">
                         <i class="fas fa-search"></i>
                     </button>
                 </div>
@@ -278,15 +278,15 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const disadvantage = html.querySelector("input[name='disadvantage']")?.checked ?? false;
 
         if (!targetUserId) {
-            ui.notifications.warn("[DH Unidentified] Select a player first.");
+            ui.notifications.warn(`${game.i18n.localize("DHUI.Prefix")} ${game.i18n.localize("DHUI.Notify.SelectPlayer")}`);
             return;
         }
         if (!selectedLi) {
-            ui.notifications.warn("[DH Unidentified] Select an unidentified item first.");
+            ui.notifications.warn(`${game.i18n.localize("DHUI.Prefix")} ${game.i18n.localize("DHUI.Notify.SelectItem")}`);
             return;
         }
         if (!trait) {
-            ui.notifications.warn("[DH Unidentified] Select a trait first.");
+            ui.notifications.warn(`${game.i18n.localize("DHUI.Prefix")} ${game.i18n.localize("DHUI.Notify.SelectTrait")}`);
             return;
         }
 
@@ -297,7 +297,7 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const item       = actor?.items.get(selectedLi.dataset.itemId);
 
         if (!item) {
-            ui.notifications.warn("[DH Unidentified] Item not found — it may have been removed.");
+            ui.notifications.warn(`${game.i18n.localize("DHUI.Prefix")} ${game.i18n.localize("DHUI.Notify.ItemNotFound")}`);
             return;
         }
 
@@ -320,7 +320,7 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
             maskedImg,
             trait,
             difficulty,
-            label:   `Identify: ${maskedName}`,
+            label:   game.i18n.format("DHUI.Identify.RollLabel", { name: maskedName }),
             command: "/dr " + params.join(" "),
             // Required by the preCreateChatMessage hook to tag the roll and trigger identification.
             actorId: actor.id,
@@ -340,7 +340,7 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
             payload,
         });
 
-        ui.notifications.info(`[DH Unidentified] Identify request sent to ${targetUser.name}.`);
+        ui.notifications.info(`${game.i18n.localize("DHUI.Prefix")} ${game.i18n.format("DHUI.Notify.RequestSent", { name: targetUser.name })}`);
         this.close();
     }
 }
@@ -372,7 +372,7 @@ export class IdentifyPromptApp extends HandlebarsApplicationMixin(ApplicationV2)
         id:       "dhui-identify-prompt",
         tag:      "div",
         classes:  ["dh-unidentified", "dhui-identify-prompt", "dhui-player-identify-dialog"],
-        window:   { title: "Action Required", icon: "fas fa-eye", resizable: false },
+        window:   { title: "DHUI.Identify.PromptTitle", icon: "fas fa-eye", resizable: false },
         position: { width: 480, height: "auto" },
         actions:  {},
     };
@@ -393,9 +393,10 @@ export class IdentifyPromptApp extends HandlebarsApplicationMixin(ApplicationV2)
     async _prepareContext(_options) {
         const { maskedName, maskedImg, trait, difficulty, label } = this.data;
 
+        const traitKey   = `DHUI.Traits.${trait}`;
         const traitLabel = trait
-            ? trait.charAt(0).toUpperCase() + trait.slice(1)
-            : "Duality Roll";
+            ? (game.i18n.has(traitKey) ? game.i18n.localize(traitKey) : trait.charAt(0).toUpperCase() + trait.slice(1))
+            : game.i18n.localize("DHUI.Identify.DualityRoll");
 
         const TextEditorImpl = foundry.applications.ux.TextEditor.implementation;
         const enrichedRoll   = await TextEditorImpl.enrichHTML(

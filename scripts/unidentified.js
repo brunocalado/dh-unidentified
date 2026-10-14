@@ -105,7 +105,7 @@ export function getDisplayDescription(item) {
 export async function openMystifyDialog(item) {
   if (!game.user.isGM) return;
   if (!isSupported(item)) {
-    ui.notifications.warn(`[DH Unidentified] Item type "${item.type}" is not supported.`);
+    ui.notifications.warn(`${game.i18n.localize("DHUI.Prefix")} ${game.i18n.format("DHUI.Notify.UnsupportedType", { type: item.type })}`);
     return;
   }
 
@@ -130,10 +130,10 @@ export async function openMystifyDialog(item) {
 
   // Label the confirm button contextually: re-mystifying keeps the mask,
   // mystifying an identified item is the initial application.
-  const confirmLabel = isUnidentified(item) ? "Apply Mask" : "Mystify";
+  const confirmLabel = game.i18n.localize(isUnidentified(item) ? "DHUI.Mystify.ApplyMask" : "DHUI.Mystify.Mystify");
 
   const result = await foundry.applications.api.DialogV2.wait({
-    window:   { title: "Item Identity — DH Unidentified" },
+    window:   { title: game.i18n.localize("DHUI.Mystify.Title") },
     classes:  ["dh-unidentified", "dhui-mystify-outer"],
     position: { width: 440 },
     content,
@@ -154,10 +154,10 @@ export async function openMystifyDialog(item) {
       {
         // Sentinel string lets the caller distinguish identify from cancel.
         action: "identify",
-        label: "Identify",
+        label: game.i18n.localize("DHUI.Mystify.Identify"),
         callback: () => "identify",
       },
-      { action: "cancel", label: "Cancel", callback: () => null },
+      { action: "cancel", label: game.i18n.localize("DHUI.Common.Cancel"), callback: () => null },
     ],
     render: (_event, dialog) => {
       const input = dialog.element.querySelector("input[name='maskedImg']");
@@ -211,7 +211,7 @@ export async function applyMystify(item, { maskedName, maskedImg, maskedDesc }) 
     [`flags.${MODULE_ID}.${FLAG.MASK_DESC}`]:  maskedDesc,
   });
 
-  ui.notifications.info(`[DH Unidentified] "${item.name}" is now unidentified (masked as "${maskedName}").`);
+  ui.notifications.info(`${game.i18n.localize("DHUI.Prefix")} ${game.i18n.format("DHUI.Notify.NowUnidentified", { name: item.name, masked: maskedName })}`);
 }
 
 // ── Identify ──────────────────────────────────────────────────
@@ -228,7 +228,7 @@ export async function identifyItem(item) {
 
   const flags = getFlags(item);
   if (!flags || flags[FLAG.IDENTIFIED] !== false) {
-    ui.notifications.warn("[DH Unidentified] This item is already identified.");
+    ui.notifications.warn(`${game.i18n.localize("DHUI.Prefix")} ${game.i18n.localize("DHUI.Notify.AlreadyIdentified")}`);
     return;
   }
 
@@ -236,7 +236,7 @@ export async function identifyItem(item) {
     [`flags.${MODULE_ID}.${FLAG.IDENTIFIED}`]: true,
   });
 
-  ui.notifications.info(`[DH Unidentified] "${item.name}" has been identified!`);
+  ui.notifications.info(`${game.i18n.localize("DHUI.Prefix")} ${game.i18n.format("DHUI.Notify.Identified", { name: item.name })}`);
 }
 
 // ── Internal utilities ────────────────────────────────────────

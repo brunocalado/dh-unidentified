@@ -77,7 +77,7 @@ function _injectMenuEntries(menu, item, app) {
     // Only shown when the item is NOT mystified — prevents double-mystify which
     // would corrupt the masked values by overwriting them with themselves.
     const entryMystify = _makeEntry(
-      "fas fa-eye-slash", "Mystify Item",
+      "fas fa-eye-slash", game.i18n.localize("DHUI.Menu.MystifyItem"),
       async () => {
         _closeContextMenu(menu);
         await openMystifyDialog(item);
@@ -89,7 +89,7 @@ function _injectMenuEntries(menu, item, app) {
   } else {
     // ── Identify ──
     const entryIdentify = _makeEntry(
-      "fas fa-eye", "Identify Item",
+      "fas fa-eye", game.i18n.localize("DHUI.Menu.IdentifyItem"),
       async () => {
         _closeContextMenu(menu);
         await identifyItem(item);

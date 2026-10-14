@@ -29,33 +29,24 @@ const DEFAULT_SFX = {
   failurePath: `modules/${MODULE_ID}/assets/sfx/failure.mp3`,
 };
 
-/** Built-in fallback defaults — used when no saved value exists for a type. */
-const DEFAULT_TYPE_DEFAULTS = {
-  weapon: {
-    maskedName:     "Unidentified Weapon",
-    maskedDesc:     "The nature of this item is unknown.",
+/**
+ * Built-in fallback defaults — used when no saved value exists for a type.
+ * Built lazily so the name and description follow the active language.
+ * @param {string} type - The item type key (e.g. "weapon", "armor")
+ * @returns {{ maskedName: string, maskedDesc: string, maskedImg: string, useSettingsImg: boolean }}
+ */
+function builtinDefaults(type) {
+  const nameKey = `DHUI.Defaults.Names.${type}`;
+  const maskedName = game.i18n.has(nameKey)
+    ? game.i18n.localize(nameKey)
+    : `Unidentified ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+  return {
+    maskedName,
+    maskedDesc:     game.i18n.localize("DHUI.Defaults.Description"),
     maskedImg:      "icons/magic/symbols/question-stone-yellow.webp",
     useSettingsImg: true,
-  },
-  armor: {
-    maskedName:     "Unidentified Armor",
-    maskedDesc:     "The nature of this item is unknown.",
-    maskedImg:      "icons/magic/symbols/question-stone-yellow.webp",
-    useSettingsImg: true,
-  },
-  loot: {
-    maskedName:     "Unidentified Loot",
-    maskedDesc:     "The nature of this item is unknown.",
-    maskedImg:      "icons/magic/symbols/question-stone-yellow.webp",
-    useSettingsImg: true,
-  },
-  consumable: {
-    maskedName:     "Unidentified Consumable",
-    maskedDesc:     "The nature of this item is unknown.",
-    maskedImg:      "icons/magic/symbols/question-stone-yellow.webp",
-    useSettingsImg: true,
-  },
-};
+  };
+}
 
 // ── Public API ────────────────────────────────────────────────
 
@@ -70,7 +61,8 @@ export function registerSettings() {
     scope:   "world",
     config:  false,
     type:    Object,
-    default: DEFAULT_TYPE_DEFAULTS,
+    // Empty on purpose: unsaved types fall back to builtinDefaults(), which is localized.
+    default: {},
   });
 
   // Last trait used in the Identify Roll dialog — restores GM preference on reopen
@@ -95,23 +87,23 @@ export function registerSettings() {
   // Every client still reads the value, which is required because each one
   // filters the result sound against the audience the GM resolved.
   game.settings.register(MODULE_ID, PRIVACY_KEY, {
-    name:   "Identify Result Privacy",
-    hint:   "Who learns the outcome of an identify roll — both the chat message and the success/failure sound. Public: everyone connected to the table. Private: only the player who rolled and the GM.",
+    name:   "DHUI.Settings.Privacy.Name",
+    hint:   "DHUI.Settings.Privacy.Hint",
     scope:  "world",
     config: true,
     type:   String,
     choices: {
-      [IDENTIFY_PRIVACY.PUBLIC]:  "Public — everyone at the table",
-      [IDENTIFY_PRIVACY.PRIVATE]: "Private — only the roller and the GM",
+      [IDENTIFY_PRIVACY.PUBLIC]:  "DHUI.Settings.Privacy.Public",
+      [IDENTIFY_PRIVACY.PRIVATE]: "DHUI.Settings.Privacy.Private",
     },
     default: IDENTIFY_PRIVACY.PUBLIC,
   });
 
   // Usage guide button — visible to all users (restricted: false)
   game.settings.registerMenu(MODULE_ID, "moduleGuideMenu", {
-    name:       "Module Guide",
-    label:      "Open Module Guide",
-    hint:       "How to use DH Unidentified: linked actors, hiding items, and identifying them.",
+    name:       "DHUI.Settings.Guide.Name",
+    label:      "DHUI.Settings.Guide.Label",
+    hint:       "DHUI.Settings.Guide.Hint",
     icon:       "fas fa-book-open",
     type:       ModuleGuideApp,
     restricted: false,
@@ -119,9 +111,9 @@ export function registerSettings() {
 
   // Settings menu button visible only to GM (restricted: true)
   game.settings.registerMenu(MODULE_ID, "typeDefaultsMenu", {
-    name:       "Default Masks",
-    label:      "Configure Default Masks",
-    hint:       "Set default masked name, description, and icon per item type. These are display-only presentation values — the item's real data is never modified when mystifying.",
+    name:       "DHUI.Settings.Masks.Name",
+    label:      "DHUI.Settings.Masks.Label",
+    hint:       "DHUI.Settings.Masks.Hint",
     icon:       "fas fa-eye-slash",
     type:       DefaultMasksConfig,
     restricted: true,
@@ -137,12 +129,7 @@ export function registerSettings() {
 export function getDefaultsForType(type) {
   const stored  = game.settings.get(MODULE_ID, SETTING_KEY) ?? {};
   const saved   = stored[type] ?? {};
-  const builtin = DEFAULT_TYPE_DEFAULTS[type] ?? {
-    maskedName:     `Unidentified ${type.charAt(0).toUpperCase() + type.slice(1)}`,
-    maskedDesc:     "The nature of this item is unknown.",
-    maskedImg:      "icons/magic/symbols/question-stone-yellow.webp",
-    useSettingsImg: true,
-  };
+  const builtin = builtinDefaults(type);
 
   return {
     maskedName:     saved.maskedName || builtin.maskedName,
@@ -210,7 +197,7 @@ class DefaultMasksConfig extends foundry.applications.api.ApplicationV2 {
     id:       "dhui-cfg-dialog",
     tag:      "form",
     classes:  ["dh-unidentified", "dhui-cfg"],
-    window:   { title: "Default Masks — DH Unidentified", resizable: false },
+    window:   { title: "DHUI.Masks.Title", resizable: false },
     position: { width: 520, height: "auto" },
   };
 
@@ -227,15 +214,19 @@ class DefaultMasksConfig extends foundry.applications.api.ApplicationV2 {
   async _renderHTML(_context, _options) {
     const stored = game.settings.get(MODULE_ID, SETTING_KEY) ?? {};
 
-    const tabs = TABS.map((type, i) => ({
-      type,
-      label:          type.charAt(0).toUpperCase() + type.slice(1),
-      isFirst:        i === 0,
-      maskedName:     stored[type]?.maskedName     ?? DEFAULT_TYPE_DEFAULTS[type]?.maskedName     ?? "",
-      maskedDesc:     stored[type]?.maskedDesc     ?? DEFAULT_TYPE_DEFAULTS[type]?.maskedDesc     ?? "",
-      maskedImg:      stored[type]?.maskedImg      ?? DEFAULT_TYPE_DEFAULTS[type]?.maskedImg      ?? "",
-      useSettingsImg: stored[type]?.useSettingsImg ?? DEFAULT_TYPE_DEFAULTS[type]?.useSettingsImg ?? true,
-    }));
+    const tabs = TABS.map((type, i) => {
+      const builtin = builtinDefaults(type);
+      return {
+        type,
+        label:           game.i18n.localize(`DHUI.Types.${type}`),
+        placeholderName: builtin.maskedName,
+        isFirst:         i === 0,
+        maskedName:      stored[type]?.maskedName     ?? builtin.maskedName     ?? "",
+        maskedDesc:      stored[type]?.maskedDesc     ?? builtin.maskedDesc     ?? "",
+        maskedImg:       stored[type]?.maskedImg      ?? builtin.maskedImg      ?? "",
+        useSettingsImg:  stored[type]?.useSettingsImg ?? builtin.useSettingsImg ?? true,
+      };
+    });
 
     const storedSfx = game.settings.get(MODULE_ID, SFX_KEY) ?? {};
     const sfx = {
@@ -334,9 +325,9 @@ class DefaultMasksConfig extends foundry.applications.api.ApplicationV2 {
       const toggleInput  = el.querySelector(`input[name="${type}.useSettingsImg"]`);
 
       updated[type] = {
-        maskedName:     nameInput?.value?.trim()  || DEFAULT_TYPE_DEFAULTS[type].maskedName,
-        maskedImg:      imgInput?.value?.trim()   || DEFAULT_TYPE_DEFAULTS[type].maskedImg,
-        maskedDesc:     descArea?.value?.trim()   || DEFAULT_TYPE_DEFAULTS[type].maskedDesc,
+        maskedName:     nameInput?.value?.trim()  || builtinDefaults(type).maskedName,
+        maskedImg:      imgInput?.value?.trim()   || builtinDefaults(type).maskedImg,
+        maskedDesc:     descArea?.value?.trim()   || builtinDefaults(type).maskedDesc,
         useSettingsImg: toggleInput?.checked ?? true,
       };
     }
@@ -351,7 +342,7 @@ class DefaultMasksConfig extends foundry.applications.api.ApplicationV2 {
 
     await game.settings.set(MODULE_ID, SETTING_KEY, updated);
     await game.settings.set(MODULE_ID, SFX_KEY, sfxUpdate);
-    ui.notifications.info("[DH Unidentified] Default masks saved.");
+    ui.notifications.info(`${game.i18n.localize("DHUI.Prefix")} ${game.i18n.localize("DHUI.Notify.MasksSaved")}`);
     this.close();
   }
 }
@@ -370,7 +361,7 @@ class ModuleGuideApp extends foundry.applications.api.ApplicationV2 {
     id:       "dhui-guide-dialog",
     tag:      "div",
     classes:  ["dh-unidentified", "dhui-guide-outer"],
-    window:   { title: "DH Unidentified — Module Guide", resizable: false, singleton: true },
+    window:   { title: "DHUI.Guide.Title", resizable: false, singleton: true },
     position: { width: 560, height: "auto" },
   };
 

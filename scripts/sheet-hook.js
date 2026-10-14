@@ -104,7 +104,7 @@ function _injectGMBanner(content) {
     <i class="fas fa-eye-slash dhui-gm-banner__icon"></i>
     <div class="dhui-gm-banner__text">
       <span class="dhui-gm-banner__row">
-        <strong>Unidentified</strong>
+        <strong>${game.i18n.localize("DHUI.Common.Unidentified")}</strong>
       </span>
     </div>
   `;
@@ -166,7 +166,7 @@ function _injectStateToggleButton(app, frame, item) {
   btn.innerHTML = unidentified
     ? `<i class="fas fa-eye"></i>`
     : `<i class="fas fa-eye-slash"></i>`;
-  btn.dataset.tooltip = unidentified ? "Identify Item" : "Mystify Item";
+  btn.dataset.tooltip = game.i18n.localize(unidentified ? "DHUI.Menu.IdentifyItem" : "DHUI.Menu.MystifyItem");
 
   const menuBtn = header.querySelector('[data-action="menu"]')
                ?? header.querySelector(".header-control");
@@ -261,7 +261,7 @@ function _injectPlayerBadge(content) {
   if (!content) return;
   const badge = document.createElement("div");
   badge.className = "dhui-player-badge";
-  badge.innerHTML = `<i class="fas fa-question-circle"></i> Unidentified`;
+  badge.innerHTML = `<i class="fas fa-question-circle"></i> ${game.i18n.localize("DHUI.Common.Unidentified")}`;
   content.insertBefore(badge, content.firstChild);
 }
 

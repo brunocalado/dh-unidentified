@@ -58,7 +58,7 @@ Hooks.on("renderDaggerheartMenu", (_app, element) => {
 
   const btn = document.createElement("button");
   btn.type = "button";
-  btn.innerHTML = `<i class="fas fa-eye"></i> Identify Items`;
+  btn.innerHTML = `<i class="fas fa-eye"></i> ${game.i18n.localize("DHUI.Menu.IdentifyItems")}`;
   btn.classList.add("dh-custom-btn");
   btn.style.marginTop = "0px";
   btn.style.width = "100%";
@@ -236,7 +236,7 @@ function _registerHooks() {
     if (isUnidentified(item)) {
       controls.push({
         icon: "fa-solid fa-eye",
-        label: "Identify Item",
+        label: game.i18n.localize("DHUI.Menu.IdentifyItem"),
         action: "dhuiidentify",
       });
       app.options.actions ??= {};
@@ -250,7 +250,7 @@ function _registerHooks() {
     } else {
       controls.push({
         icon: "fa-solid fa-eye-slash",
-        label: "Mystify Item",
+        label: game.i18n.localize("DHUI.Menu.MystifyItem"),
         action: "dhuimystify",
       });
       app.options.actions ??= {};
@@ -269,10 +269,9 @@ function _registerHooks() {
     if (game.user.isGM) return true;
     if (!isUnidentified(item)) return true;
     const touchesEquip = changes?.system?.equipped !== undefined;
-    ui.notifications.warn(touchesEquip
-      ? "[DH Unidentified] Only the GM can equip or unequip unidentified items."
-      : "[DH Unidentified] This item cannot be edited while unidentified."
-    );
+    ui.notifications.warn(`${game.i18n.localize("DHUI.Prefix")} ${game.i18n.localize(touchesEquip
+      ? "DHUI.Notify.OnlyGMEquip"
+      : "DHUI.Notify.NoEdit")}`);
     return false;
   });
 
@@ -334,7 +333,7 @@ function _registerHooks() {
     if (game.user.isGM) return true;
     const item = action.parent;
     if (!item || !isUnidentified(item)) return true;
-    ui.notifications.warn("[DH Unidentified] This item cannot be used while unidentified.");
+    ui.notifications.warn(`${game.i18n.localize("DHUI.Prefix")} ${game.i18n.localize("DHUI.Notify.NoUse")}`);
     return false;
   });
 
@@ -578,10 +577,10 @@ async function _sendIdentifyResultMessage(item, success, whisper = []) {
   const displayImg  = getDisplayImg(item);
 
   const borderColor = success ? "#C9A060" : "#666666";
-  const headerText  = success ? "Item Identified!" : "Identification Failed";
+  const headerText  = game.i18n.localize(success ? "DHUI.Result.SuccessHeader" : "DHUI.Result.FailureHeader");
   const bodyText    = success
-    ? `<em>${_esc(displayName)}</em> has been identified — its true nature is now revealed.`
-    : `The nature of <em>${_esc(displayName)}</em> remains hidden.`;
+    ? game.i18n.format("DHUI.Result.SuccessBody", { name: _esc(displayName) })
+    : game.i18n.format("DHUI.Result.FailureBody", { name: _esc(displayName) });
 
   const content = `
   <div style="border:2px solid ${borderColor};border-radius:8px;overflow:hidden;">
@@ -641,7 +640,7 @@ Hooks.on("renderItemDirectory", (_app, html) => {
         li.dataset.dhuiTooltipBound = "1";
         li.addEventListener("mouseenter", () => {
           game.tooltip.activate(li, {
-            text: `Masked as: "${maskedName}"`,
+            text: game.i18n.format("DHUI.Result.MaskedAs", { name: maskedName }),
             direction: "RIGHT",
           });
         });
