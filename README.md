@@ -122,6 +122,12 @@ Used this module before version 0.1.0? Those older versions hid items in a way t
 
 ---
 
+## Translations
+
+The module ships in English. To translate it, open an [issue](https://github.com/brunocalado/dh-unidentified/issues) and attach a translated copy of [lang/en.json](lang/en.json), with the code of your language (for example `fr`, `de` or `pt-BR`). I add the file to the module in the next update. To update a translation later, do the same with the new file.
+
+---
+
 ## Installation
 
 Install via the Foundry VTT Module browser or use this manifest link:
