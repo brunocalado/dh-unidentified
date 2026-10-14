@@ -27,3 +27,6 @@ export const IDENTIFY_PRIVACY = {
   /** Only the player who rolled and the GMs see the result and hear the sound. */
   PRIVATE: "private",
 };
+
+/** ChatMessage flag holding the identify-result data each client renders in its own language. */
+export const RESULT_FLAG = "identifyResult";

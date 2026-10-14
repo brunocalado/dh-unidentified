@@ -11,7 +11,7 @@
 // Module entry point.
 // ============================================================
 
-import { MODULE_ID, IDENTIFY_PRIVACY } from "./constants.js";
+import { MODULE_ID, IDENTIFY_PRIVACY, RESULT_FLAG } from "./constants.js";
 import { onRenderItemSheet }           from "./sheet-hook.js";
 import { patchActorSheetContextMenus } from "./context-menu.js";
 import {
@@ -572,20 +572,36 @@ function _playIdentifySfx(success, recipients) {
 async function _sendIdentifyResultMessage(item, success, whisper = []) {
   // After a successful identifyItem(), identified=true → getDisplayName returns item.name.
   // After a failed roll, identified=false → getDisplayName returns the masked alias.
-  const displayName = getDisplayName(item);
-  const displayImg  = getDisplayImg(item);
+  const result = { success, name: getDisplayName(item), img: getDisplayImg(item) };
 
+  await ChatMessage.create({
+    user:    game.user.id,
+    speaker: ChatMessage.getSpeaker(),
+    // Stored content is in the GM's language. It is what the chat export reads and
+    // what shows if the module is disabled; with the module on, each client rebuilds
+    // it from the flag in the renderChatMessageHTML hook below.
+    content: _buildResultContent(result),
+    style:   CONST.CHAT_MESSAGE_STYLES.OTHER,
+    whisper,
+    flags:   { [MODULE_ID]: { [RESULT_FLAG]: result } },
+  });
+}
+
+/**
+ * Builds the identify-result card in the current user's language.
+ * @param {{ success: boolean, name: string, img: string }} result
+ * @returns {string} HTML
+ */
+function _buildResultContent({ success, name, img }) {
   const borderColor = success ? "#C9A060" : "#666666";
-  // Written once by the GM, so every reader sees the GM's language — the same
-  // trade-off Foundry's own chat cards make.
   const headerText  = game.i18n.localize(success
     ? "DH_UNIDENTIFIED.RESULT.successHeader"
     : "DH_UNIDENTIFIED.RESULT.failureHeader");
   const bodyText    = game.i18n.localize(success
     ? "DH_UNIDENTIFIED.RESULT.successBody"
-    : "DH_UNIDENTIFIED.RESULT.failureBody", { name: _esc(displayName) });
+    : "DH_UNIDENTIFIED.RESULT.failureBody", { name: _esc(name) });
 
-  const content = `
+  return `
   <div style="border:2px solid ${borderColor};border-radius:8px;overflow:hidden;">
     <header style="background:#191919;padding:8px;border-bottom:2px solid ${borderColor};text-align:center;">
       <h3 style="margin:0;font-weight:bold;color:${borderColor};font-family:'Aleo',serif;text-transform:uppercase;letter-spacing:1px;">
@@ -593,21 +609,22 @@ async function _sendIdentifyResultMessage(item, success, whisper = []) {
       </h3>
     </header>
     <div style="background:#111;padding:14px 16px;display:flex;gap:14px;align-items:center;">
-      <img src="${_esc(displayImg)}" style="width:54px;height:54px;object-fit:contain;border:none;flex-shrink:0;">
+      <img src="${_esc(img)}" style="width:54px;height:54px;object-fit:contain;border:none;flex-shrink:0;">
       <span style="color:#ccc;font-family:'Lato',sans-serif;font-size:1em;line-height:1.5;">
         ${bodyText}
       </span>
     </div>
   </div>`;
-
-  await ChatMessage.create({
-    user:    game.user.id,
-    speaker: ChatMessage.getSpeaker(),
-    content,
-    style:   CONST.CHAT_MESSAGE_STYLES.OTHER,
-    whisper,
-  });
 }
+
+// Registered at module level, not in "ready": the chat log renders its stored
+// messages before "ready" fires, and those must be rebuilt too.
+Hooks.on("renderChatMessageHTML", (message, html) => {
+  const result = message.getFlag(MODULE_ID, RESULT_FLAG);
+  if (!result) return;
+  const contentEl = html.querySelector(".message-content");
+  if (contentEl) contentEl.innerHTML = _buildResultContent(result);
+});
 
 // ── Sidebar: unidentified cue in Item Directory ───────────────
 //
