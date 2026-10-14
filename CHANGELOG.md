@@ -1,3 +1,26 @@
+# 0.1.7
+
+### [Added] Localization support
+
+Every user-visible string now lives in `lang/en.json`, so the module can be translated. To contribute a translation, open an issue with a translated copy of `lang/en.json` and the language code. The README has a Translations section describing this.
+
+Trait names in the Identify Roll dialog and the player prompt come from the Daggerheart system's own translations.
+
+### [Changed] Default mask text follows the user's language
+
+The default masked name and description are no longer written into the world setting. In **Configure Default Masks**, an empty field means the built-in text, shown as a placeholder and resolved in the language of whoever opens the dialog. Text the GM types still wins.
+
+Worlds that saved this dialog before keep their saved text. Clear a field to go back to the built-in text.
+
+### [Changed] Each client reads in its own language
+
+- The identify prompt is built on the player's client, so the player reads it in their own language instead of the GM's.
+- The identify result card in chat is rebuilt on every client from data stored in the message, so each reader sees it in their language. The stored content keeps the GM-language card, which is what the chat export shows and what appears if the module is disabled. Result messages created before this version are shown as they were saved.
+
+### [Removed] Unused template
+
+`templates/identify-player-request.hbs` was never rendered and has been removed.
+
 # 0.1.5
 
 ### [Added] Identify result privacy
