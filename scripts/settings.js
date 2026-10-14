@@ -12,6 +12,7 @@
 // ============================================================
 
 import { MODULE_ID, IDENTIFY_PRIVACY } from "./constants.js";
+import { notify } from "./helpers.js";
 
 const SETTING_KEY      = "typeDefaults";
 const SFX_KEY          = "identifySfx";
@@ -29,33 +30,23 @@ const DEFAULT_SFX = {
   failurePath: `modules/${MODULE_ID}/assets/sfx/failure.mp3`,
 };
 
-/** Built-in fallback defaults — used when no saved value exists for a type. */
-const DEFAULT_TYPE_DEFAULTS = {
-  weapon: {
-    maskedName:     "Unidentified Weapon",
-    maskedDesc:     "The nature of this item is unknown.",
-    maskedImg:      "icons/magic/symbols/question-stone-yellow.webp",
-    useSettingsImg: true,
-  },
-  armor: {
-    maskedName:     "Unidentified Armor",
-    maskedDesc:     "The nature of this item is unknown.",
-    maskedImg:      "icons/magic/symbols/question-stone-yellow.webp",
-    useSettingsImg: true,
-  },
-  loot: {
-    maskedName:     "Unidentified Loot",
-    maskedDesc:     "The nature of this item is unknown.",
-    maskedImg:      "icons/magic/symbols/question-stone-yellow.webp",
-    useSettingsImg: true,
-  },
-  consumable: {
-    maskedName:     "Unidentified Consumable",
-    maskedDesc:     "The nature of this item is unknown.",
-    maskedImg:      "icons/magic/symbols/question-stone-yellow.webp",
-    useSettingsImg: true,
-  },
-};
+/** Built-in fallback image — used when no saved value exists for a type. */
+const DEFAULT_MASKED_IMG = "icons/magic/symbols/question-stone-yellow.webp";
+
+/**
+ * Built-in masked name and description for a type, in the current user's language.
+ * Never written to the setting: an empty saved value means "use this", so the
+ * default follows whoever opens the dialog instead of freezing the language of
+ * the GM who last pressed Save.
+ * @param {string} type - One of TABS
+ * @returns {{ maskedName: string, maskedDesc: string }}
+ */
+function builtinText(type) {
+  return {
+    maskedName: game.i18n.localize(`DH_UNIDENTIFIED.DEFAULTS.maskedName.${type}`),
+    maskedDesc: game.i18n.localize("DH_UNIDENTIFIED.DEFAULTS.maskedDesc"),
+  };
+}
 
 // ── Public API ────────────────────────────────────────────────
 
@@ -70,7 +61,7 @@ export function registerSettings() {
     scope:   "world",
     config:  false,
     type:    Object,
-    default: DEFAULT_TYPE_DEFAULTS,
+    default: {},
   });
 
   // Last trait used in the Identify Roll dialog — restores GM preference on reopen
@@ -95,23 +86,23 @@ export function registerSettings() {
   // Every client still reads the value, which is required because each one
   // filters the result sound against the audience the GM resolved.
   game.settings.register(MODULE_ID, PRIVACY_KEY, {
-    name:   "Identify Result Privacy",
-    hint:   "Who learns the outcome of an identify roll — both the chat message and the success/failure sound. Public: everyone connected to the table. Private: only the player who rolled and the GM.",
+    name:   "DH_UNIDENTIFIED.SETTINGS.privacy.name",
+    hint:   "DH_UNIDENTIFIED.SETTINGS.privacy.hint",
     scope:  "world",
     config: true,
     type:   String,
     choices: {
-      [IDENTIFY_PRIVACY.PUBLIC]:  "Public — everyone at the table",
-      [IDENTIFY_PRIVACY.PRIVATE]: "Private — only the roller and the GM",
+      [IDENTIFY_PRIVACY.PUBLIC]:  "DH_UNIDENTIFIED.SETTINGS.privacy.public",
+      [IDENTIFY_PRIVACY.PRIVATE]: "DH_UNIDENTIFIED.SETTINGS.privacy.private",
     },
     default: IDENTIFY_PRIVACY.PUBLIC,
   });
 
   // Usage guide button — visible to all users (restricted: false)
   game.settings.registerMenu(MODULE_ID, "moduleGuideMenu", {
-    name:       "Module Guide",
-    label:      "Open Module Guide",
-    hint:       "How to use DH Unidentified: linked actors, hiding items, and identifying them.",
+    name:       "DH_UNIDENTIFIED.SETTINGS.guideMenu.name",
+    label:      "DH_UNIDENTIFIED.SETTINGS.guideMenu.label",
+    hint:       "DH_UNIDENTIFIED.SETTINGS.guideMenu.hint",
     icon:       "fas fa-book-open",
     type:       ModuleGuideApp,
     restricted: false,
@@ -119,9 +110,9 @@ export function registerSettings() {
 
   // Settings menu button visible only to GM (restricted: true)
   game.settings.registerMenu(MODULE_ID, "typeDefaultsMenu", {
-    name:       "Default Masks",
-    label:      "Configure Default Masks",
-    hint:       "Set default masked name, description, and icon per item type. These are display-only presentation values — the item's real data is never modified when mystifying.",
+    name:       "DH_UNIDENTIFIED.SETTINGS.masksMenu.name",
+    label:      "DH_UNIDENTIFIED.SETTINGS.masksMenu.label",
+    hint:       "DH_UNIDENTIFIED.SETTINGS.masksMenu.hint",
     icon:       "fas fa-eye-slash",
     type:       DefaultMasksConfig,
     restricted: true,
@@ -137,19 +128,14 @@ export function registerSettings() {
 export function getDefaultsForType(type) {
   const stored  = game.settings.get(MODULE_ID, SETTING_KEY) ?? {};
   const saved   = stored[type] ?? {};
-  const builtin = DEFAULT_TYPE_DEFAULTS[type] ?? {
-    maskedName:     `Unidentified ${type.charAt(0).toUpperCase() + type.slice(1)}`,
-    maskedDesc:     "The nature of this item is unknown.",
-    maskedImg:      "icons/magic/symbols/question-stone-yellow.webp",
-    useSettingsImg: true,
-  };
+  const builtin = builtinText(type);
 
   return {
     maskedName:     saved.maskedName || builtin.maskedName,
     maskedDesc:     saved.maskedDesc || builtin.maskedDesc,
-    maskedImg:      saved.maskedImg  || builtin.maskedImg,
-    // Explicit boolean check: saved value wins, falls back to builtin (always true by default)
-    useSettingsImg: saved.useSettingsImg ?? builtin.useSettingsImg,
+    maskedImg:      saved.maskedImg  || DEFAULT_MASKED_IMG,
+    // Explicit boolean check: saved value wins, defaults to true
+    useSettingsImg: saved.useSettingsImg ?? true,
   };
 }
 
@@ -210,7 +196,7 @@ class DefaultMasksConfig extends foundry.applications.api.ApplicationV2 {
     id:       "dhui-cfg-dialog",
     tag:      "form",
     classes:  ["dh-unidentified", "dhui-cfg"],
-    window:   { title: "Default Masks — DH Unidentified", resizable: false },
+    window:   { title: "DH_UNIDENTIFIED.MASKS.title", resizable: false },
     position: { width: 520, height: "auto" },
   };
 
@@ -227,14 +213,18 @@ class DefaultMasksConfig extends foundry.applications.api.ApplicationV2 {
   async _renderHTML(_context, _options) {
     const stored = game.settings.get(MODULE_ID, SETTING_KEY) ?? {};
 
+    // Name and description fields show only what the GM typed; the built-in text
+    // goes in the placeholder so an empty field visibly means "use the default".
     const tabs = TABS.map((type, i) => ({
       type,
-      label:          type.charAt(0).toUpperCase() + type.slice(1),
+      // Own labels rather than the system's TYPES.Item: Daggerheart calls loot "Item".
+      label:          game.i18n.localize(`DH_UNIDENTIFIED.TYPES.${type}`),
       isFirst:        i === 0,
-      maskedName:     stored[type]?.maskedName     ?? DEFAULT_TYPE_DEFAULTS[type]?.maskedName     ?? "",
-      maskedDesc:     stored[type]?.maskedDesc     ?? DEFAULT_TYPE_DEFAULTS[type]?.maskedDesc     ?? "",
-      maskedImg:      stored[type]?.maskedImg      ?? DEFAULT_TYPE_DEFAULTS[type]?.maskedImg      ?? "",
-      useSettingsImg: stored[type]?.useSettingsImg ?? DEFAULT_TYPE_DEFAULTS[type]?.useSettingsImg ?? true,
+      maskedName:     stored[type]?.maskedName     ?? "",
+      maskedDesc:     stored[type]?.maskedDesc     ?? "",
+      maskedImg:      stored[type]?.maskedImg      || DEFAULT_MASKED_IMG,
+      useSettingsImg: stored[type]?.useSettingsImg ?? true,
+      placeholder:    builtinText(type),
     }));
 
     const storedSfx = game.settings.get(MODULE_ID, SFX_KEY) ?? {};
@@ -334,9 +324,9 @@ class DefaultMasksConfig extends foundry.applications.api.ApplicationV2 {
       const toggleInput  = el.querySelector(`input[name="${type}.useSettingsImg"]`);
 
       updated[type] = {
-        maskedName:     nameInput?.value?.trim()  || DEFAULT_TYPE_DEFAULTS[type].maskedName,
-        maskedImg:      imgInput?.value?.trim()   || DEFAULT_TYPE_DEFAULTS[type].maskedImg,
-        maskedDesc:     descArea?.value?.trim()   || DEFAULT_TYPE_DEFAULTS[type].maskedDesc,
+        maskedName:     nameInput?.value?.trim()  ?? "",
+        maskedImg:      imgInput?.value?.trim()   || DEFAULT_MASKED_IMG,
+        maskedDesc:     descArea?.value?.trim()   ?? "",
         useSettingsImg: toggleInput?.checked ?? true,
       };
     }
@@ -351,7 +341,7 @@ class DefaultMasksConfig extends foundry.applications.api.ApplicationV2 {
 
     await game.settings.set(MODULE_ID, SETTING_KEY, updated);
     await game.settings.set(MODULE_ID, SFX_KEY, sfxUpdate);
-    ui.notifications.info("[DH Unidentified] Default masks saved.");
+    notify("info", "masksSaved");
     this.close();
   }
 }
@@ -370,7 +360,7 @@ class ModuleGuideApp extends foundry.applications.api.ApplicationV2 {
     id:       "dhui-guide-dialog",
     tag:      "div",
     classes:  ["dh-unidentified", "dhui-guide-outer"],
-    window:   { title: "DH Unidentified — Module Guide", resizable: false, singleton: true },
+    window:   { title: "DH_UNIDENTIFIED.GUIDE.title", resizable: false, singleton: true },
     position: { width: 560, height: "auto" },
   };
 

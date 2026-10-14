@@ -1,3 +1,11 @@
+/*!
+ * Daggerheart: Unidentified Items
+ * 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
 // ============================================================
 // dh-unidentified | context-menu.js
 // Injects Mystify / Identify into the Foundryborne character
@@ -77,7 +85,7 @@ function _injectMenuEntries(menu, item, app) {
     // Only shown when the item is NOT mystified — prevents double-mystify which
     // would corrupt the masked values by overwriting them with themselves.
     const entryMystify = _makeEntry(
-      "fas fa-eye-slash", "Mystify Item",
+      "fas fa-eye-slash", game.i18n.localize("DH_UNIDENTIFIED.COMMON.mystifyItem"),
       async () => {
         _closeContextMenu(menu);
         await openMystifyDialog(item);
@@ -89,7 +97,7 @@ function _injectMenuEntries(menu, item, app) {
   } else {
     // ── Identify ──
     const entryIdentify = _makeEntry(
-      "fas fa-eye", "Identify Item",
+      "fas fa-eye", game.i18n.localize("DH_UNIDENTIFIED.COMMON.identifyItem"),
       async () => {
         _closeContextMenu(menu);
         await identifyItem(item);

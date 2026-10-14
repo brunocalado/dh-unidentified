@@ -1,3 +1,11 @@
+/*!
+ * Daggerheart: Unidentified Items
+ * 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
 // ============================================================
 // dh-unidentified | unidentified.js
 // Core logic: mystify, identify, flag read/write helpers.
@@ -10,6 +18,7 @@
 
 import { MODULE_ID } from "./constants.js";
 import { getDefaultsForType } from "./settings.js";
+import { notify } from "./helpers.js";
 
 /** Path to the Handlebars template for the Mystify dialog form. */
 const MYSTIFY_TEMPLATE = "modules/dh-unidentified/templates/mystify-dialog.hbs";
@@ -105,7 +114,7 @@ export function getDisplayDescription(item) {
 export async function openMystifyDialog(item) {
   if (!game.user.isGM) return;
   if (!isSupported(item)) {
-    ui.notifications.warn(`[DH Unidentified] Item type "${item.type}" is not supported.`);
+    notify("warn", "unsupportedType", { type: item.type });
     return;
   }
 
@@ -130,17 +139,17 @@ export async function openMystifyDialog(item) {
 
   // Label the confirm button contextually: re-mystifying keeps the mask,
   // mystifying an identified item is the initial application.
-  const confirmLabel = isUnidentified(item) ? "Apply Mask" : "Mystify";
+  const confirmLabel = isUnidentified(item) ? "DH_UNIDENTIFIED.MYSTIFY.applyMask" : "DH_UNIDENTIFIED.MYSTIFY.mystify";
 
   const result = await foundry.applications.api.DialogV2.wait({
-    window:   { title: "Item Identity — DH Unidentified" },
+    window:   { title: "DH_UNIDENTIFIED.MYSTIFY.title" },
     classes:  ["dh-unidentified", "dhui-mystify-outer"],
     position: { width: 440 },
     content,
     buttons: [
       {
         action: "confirm",
-        label: confirmLabel,
+        label: game.i18n.localize(confirmLabel),
         default: true,
         callback: (_event, button) => {
           const els = button.form.elements;
@@ -154,10 +163,10 @@ export async function openMystifyDialog(item) {
       {
         // Sentinel string lets the caller distinguish identify from cancel.
         action: "identify",
-        label: "Identify",
+        label: game.i18n.localize("DH_UNIDENTIFIED.MYSTIFY.identify"),
         callback: () => "identify",
       },
-      { action: "cancel", label: "Cancel", callback: () => null },
+      { action: "cancel", label: game.i18n.localize("DH_UNIDENTIFIED.MYSTIFY.cancel"), callback: () => null },
     ],
     render: (_event, dialog) => {
       const input = dialog.element.querySelector("input[name='maskedImg']");
@@ -211,7 +220,7 @@ export async function applyMystify(item, { maskedName, maskedImg, maskedDesc }) 
     [`flags.${MODULE_ID}.${FLAG.MASK_DESC}`]:  maskedDesc,
   });
 
-  ui.notifications.info(`[DH Unidentified] "${item.name}" is now unidentified (masked as "${maskedName}").`);
+  notify("info", "nowUnidentified", { name: item.name, masked: maskedName });
 }
 
 // ── Identify ──────────────────────────────────────────────────
@@ -228,7 +237,7 @@ export async function identifyItem(item) {
 
   const flags = getFlags(item);
   if (!flags || flags[FLAG.IDENTIFIED] !== false) {
-    ui.notifications.warn("[DH Unidentified] This item is already identified.");
+    notify("warn", "alreadyIdentified");
     return;
   }
 
@@ -236,7 +245,7 @@ export async function identifyItem(item) {
     [`flags.${MODULE_ID}.${FLAG.IDENTIFIED}`]: true,
   });
 
-  ui.notifications.info(`[DH Unidentified] "${item.name}" has been identified!`);
+  notify("info", "identified", { name: item.name });
 }
 
 // ── Internal utilities ────────────────────────────────────────

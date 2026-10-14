@@ -20,6 +20,7 @@ import {
 } from "./unidentified.js";
 import { registerSettings, getSfxSettings, getIdentifyPrivacy } from "./settings.js";
 import { Identify, IdentifyPromptApp } from "./identify-app.js";
+import { notify } from "./helpers.js";
 
 function log(...args) { console.log(`[${MODULE_ID}]`, ...args); }
 
@@ -58,7 +59,7 @@ Hooks.on("renderDaggerheartMenu", (_app, element) => {
 
   const btn = document.createElement("button");
   btn.type = "button";
-  btn.innerHTML = `<i class="fas fa-eye"></i> Identify Items`;
+  btn.innerHTML = `<i class="fas fa-eye"></i> ${_esc(game.i18n.localize("DH_UNIDENTIFIED.MENU.identifyItems"))}`;
   btn.classList.add("dh-custom-btn");
   btn.style.marginTop = "0px";
   btn.style.width = "100%";
@@ -69,7 +70,7 @@ Hooks.on("renderDaggerheartMenu", (_app, element) => {
   if (fieldset) {
     const newFieldset = document.createElement("fieldset");
     const legend = document.createElement("legend");
-    legend.innerText = "Unidentified";
+    legend.innerText = game.i18n.localize("DH_UNIDENTIFIED.COMMON.unidentified");
     newFieldset.appendChild(legend);
     newFieldset.appendChild(btn);
     fieldset.after(newFieldset);
@@ -236,7 +237,7 @@ function _registerHooks() {
     if (isUnidentified(item)) {
       controls.push({
         icon: "fa-solid fa-eye",
-        label: "Identify Item",
+        label: "DH_UNIDENTIFIED.COMMON.identifyItem",
         action: "dhuiidentify",
       });
       app.options.actions ??= {};
@@ -250,7 +251,7 @@ function _registerHooks() {
     } else {
       controls.push({
         icon: "fa-solid fa-eye-slash",
-        label: "Mystify Item",
+        label: "DH_UNIDENTIFIED.COMMON.mystifyItem",
         action: "dhuimystify",
       });
       app.options.actions ??= {};
@@ -269,10 +270,7 @@ function _registerHooks() {
     if (game.user.isGM) return true;
     if (!isUnidentified(item)) return true;
     const touchesEquip = changes?.system?.equipped !== undefined;
-    ui.notifications.warn(touchesEquip
-      ? "[DH Unidentified] Only the GM can equip or unequip unidentified items."
-      : "[DH Unidentified] This item cannot be edited while unidentified."
-    );
+    notify("warn", touchesEquip ? "onlyGMEquip" : "noEdit");
     return false;
   });
 
@@ -334,7 +332,7 @@ function _registerHooks() {
     if (game.user.isGM) return true;
     const item = action.parent;
     if (!item || !isUnidentified(item)) return true;
-    ui.notifications.warn("[DH Unidentified] This item cannot be used while unidentified.");
+    notify("warn", "noUse");
     return false;
   });
 
@@ -578,10 +576,14 @@ async function _sendIdentifyResultMessage(item, success, whisper = []) {
   const displayImg  = getDisplayImg(item);
 
   const borderColor = success ? "#C9A060" : "#666666";
-  const headerText  = success ? "Item Identified!" : "Identification Failed";
-  const bodyText    = success
-    ? `<em>${_esc(displayName)}</em> has been identified — its true nature is now revealed.`
-    : `The nature of <em>${_esc(displayName)}</em> remains hidden.`;
+  // Written once by the GM, so every reader sees the GM's language — the same
+  // trade-off Foundry's own chat cards make.
+  const headerText  = game.i18n.localize(success
+    ? "DH_UNIDENTIFIED.RESULT.successHeader"
+    : "DH_UNIDENTIFIED.RESULT.failureHeader");
+  const bodyText    = game.i18n.localize(success
+    ? "DH_UNIDENTIFIED.RESULT.successBody"
+    : "DH_UNIDENTIFIED.RESULT.failureBody", { name: _esc(displayName) });
 
   const content = `
   <div style="border:2px solid ${borderColor};border-radius:8px;overflow:hidden;">
@@ -641,7 +643,7 @@ Hooks.on("renderItemDirectory", (_app, html) => {
         li.dataset.dhuiTooltipBound = "1";
         li.addEventListener("mouseenter", () => {
           game.tooltip.activate(li, {
-            text: `Masked as: "${maskedName}"`,
+            text: game.i18n.localize("DH_UNIDENTIFIED.SIDEBAR.maskedAs", { name: maskedName }),
             direction: "RIGHT",
           });
         });

@@ -19,6 +19,7 @@
 import { MODULE_ID } from "./constants.js";
 import { isUnidentified, getDisplayName, getDisplayImg, _esc } from "./unidentified.js";
 import { getLastIdentifyTrait, setLastIdentifyTrait } from "./settings.js";
+import { notify } from "./helpers.js";
 
 const TEMPLATE = `modules/${MODULE_ID}/templates/identify-request.hbs`;
 
@@ -29,6 +30,14 @@ const TRAITS = ["agility", "strength", "finesse", "instinct", "presence", "knowl
 const PARTY_ACTOR_TYPE = "party";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+
+/**
+ * @param {string} trait - One of TRAITS
+ * @returns {string} The trait name as the Daggerheart system translates it.
+ */
+function traitLabel(trait) {
+    return game.i18n.localize(`DAGGERHEART.CONFIG.Traits.${trait}.name`);
+}
 
 /**
  * Collects every world actor of type "party" that all players fully own.
@@ -76,7 +85,7 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
         id:       "dhui-identify-app",
         tag:      "form",
         classes:  ["dh-unidentified", "dhui-identify-app"],
-        window:   { title: "Request Identify Roll", icon: "fas fa-eye", resizable: false },
+        window:   { title: "DH_UNIDENTIFIED.REQUEST.title", icon: "fas fa-eye", resizable: false },
         position: { width: 600, height: "auto" },
         actions:  {},
     };
@@ -106,7 +115,8 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
         return {
             users,
             selectedUserId: this.#selectedUserId,
-            traits:      TRAITS,
+            // Trait labels come from the Daggerheart system's own translations.
+            traits:      TRAITS.map(id => ({ id, label: traitLabel(id) })),
             difficulty:  15,
             activeTrait: getLastIdentifyTrait(),
         };
@@ -211,9 +221,9 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
         if (!entries.length) {
             const li = document.createElement("li");
             li.className   = "dhui-identify-empty";
-            li.textContent = actor
-                ? "No unidentified items on this actor or the party sheet."
-                : "Select a player above.";
+            li.textContent = game.i18n.localize(actor
+                ? "DH_UNIDENTIFIED.REQUEST.noItems"
+                : "DH_UNIDENTIFIED.REQUEST.selectPlayerAbove");
             listEl.appendChild(li);
             return;
         }
@@ -233,11 +243,11 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 <img src="${_esc(realImg)}" class="dhui-identify-item__img" alt="">
                 <span class="dhui-identify-item__name">${_esc(realName)}</span>
                 ${party ? `<i class="fas fa-users dhui-identify-item__party-badge"
-                              title="On the party sheet: ${_esc(party.name)}"></i>` : ""}
+                              title="${_esc(game.i18n.localize("DH_UNIDENTIFIED.REQUEST.onPartySheet", { name: party.name }))}"></i>` : ""}
                 <div class="dhui-identify-item__actions">
                     <button type="button"
                             class="dhui-identify-item__peek-btn"
-                            aria-label="Open sheet for ${_esc(realName)}">
+                            aria-label="${_esc(game.i18n.localize("DH_UNIDENTIFIED.REQUEST.openSheet", { name: realName }))}">
                         <i class="fas fa-search"></i>
                     </button>
                 </div>
@@ -278,15 +288,15 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const disadvantage = html.querySelector("input[name='disadvantage']")?.checked ?? false;
 
         if (!targetUserId) {
-            ui.notifications.warn("[DH Unidentified] Select a player first.");
+            notify("warn", "selectPlayer");
             return;
         }
         if (!selectedLi) {
-            ui.notifications.warn("[DH Unidentified] Select an unidentified item first.");
+            notify("warn", "selectItem");
             return;
         }
         if (!trait) {
-            ui.notifications.warn("[DH Unidentified] Select a trait first.");
+            notify("warn", "selectTrait");
             return;
         }
 
@@ -297,7 +307,7 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const item       = actor?.items.get(selectedLi.dataset.itemId);
 
         if (!item) {
-            ui.notifications.warn("[DH Unidentified] Item not found — it may have been removed.");
+            notify("warn", "itemNotFound");
             return;
         }
 
@@ -320,7 +330,6 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
             maskedImg,
             trait,
             difficulty,
-            label:   `Identify: ${maskedName}`,
             command: "/dr " + params.join(" "),
             // Required by the preCreateChatMessage hook to tag the roll and trigger identification.
             actorId: actor.id,
@@ -340,7 +349,7 @@ export class IdentifyApp extends HandlebarsApplicationMixin(ApplicationV2) {
             payload,
         });
 
-        ui.notifications.info(`[DH Unidentified] Identify request sent to ${targetUser.name}.`);
+        notify("info", "requestSent", { name: targetUser.name });
         this.close();
     }
 }
@@ -372,7 +381,7 @@ export class IdentifyPromptApp extends HandlebarsApplicationMixin(ApplicationV2)
         id:       "dhui-identify-prompt",
         tag:      "div",
         classes:  ["dh-unidentified", "dhui-identify-prompt", "dhui-player-identify-dialog"],
-        window:   { title: "Action Required", icon: "fas fa-eye", resizable: false },
+        window:   { title: "DH_UNIDENTIFIED.PROMPT.title", icon: "fas fa-eye", resizable: false },
         position: { width: 480, height: "auto" },
         actions:  {},
     };
@@ -391,18 +400,16 @@ export class IdentifyPromptApp extends HandlebarsApplicationMixin(ApplicationV2)
      * @returns {Promise<object>}
      */
     async _prepareContext(_options) {
-        const { maskedName, maskedImg, trait, difficulty, label } = this.data;
-
-        const traitLabel = trait
-            ? trait.charAt(0).toUpperCase() + trait.slice(1)
-            : "Duality Roll";
+        // The payload carries data only; every label is built here so the player
+        // reads it in their own language, not in the GM's.
+        const { maskedName, maskedImg, trait, difficulty } = this.data;
 
         const TextEditorImpl = foundry.applications.ux.TextEditor.implementation;
         const enrichedRoll   = await TextEditorImpl.enrichHTML(
             `[[/dr trait=${trait} difficulty=${difficulty}]]`
         );
 
-        return { maskedName, maskedImg, label, traitLabel, difficulty, enrichedRoll };
+        return { maskedName, maskedImg, traitLabel: traitLabel(trait), difficulty, enrichedRoll };
     }
 
     /**

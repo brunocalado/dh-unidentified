@@ -1,3 +1,11 @@
+/*!
+ * Daggerheart: Unidentified Items
+ * 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
 // ============================================================
 // dh-unidentified | sheet-hook.js
 // Intercepts item sheet rendering to apply the display layer.
@@ -104,7 +112,7 @@ function _injectGMBanner(content) {
     <i class="fas fa-eye-slash dhui-gm-banner__icon"></i>
     <div class="dhui-gm-banner__text">
       <span class="dhui-gm-banner__row">
-        <strong>Unidentified</strong>
+        <strong>${game.i18n.localize("DH_UNIDENTIFIED.COMMON.unidentified")}</strong>
       </span>
     </div>
   `;
@@ -166,7 +174,7 @@ function _injectStateToggleButton(app, frame, item) {
   btn.innerHTML = unidentified
     ? `<i class="fas fa-eye"></i>`
     : `<i class="fas fa-eye-slash"></i>`;
-  btn.dataset.tooltip = unidentified ? "Identify Item" : "Mystify Item";
+  btn.dataset.tooltip = game.i18n.localize(unidentified ? "DH_UNIDENTIFIED.COMMON.identifyItem" : "DH_UNIDENTIFIED.COMMON.mystifyItem");
 
   const menuBtn = header.querySelector('[data-action="menu"]')
                ?? header.querySelector(".header-control");
@@ -261,7 +269,7 @@ function _injectPlayerBadge(content) {
   if (!content) return;
   const badge = document.createElement("div");
   badge.className = "dhui-player-badge";
-  badge.innerHTML = `<i class="fas fa-question-circle"></i> Unidentified`;
+  badge.innerHTML = `<i class="fas fa-question-circle"></i> ${game.i18n.localize("DH_UNIDENTIFIED.COMMON.unidentified")}`;
   content.insertBefore(badge, content.firstChild);
 }
 

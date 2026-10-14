@@ -42,6 +42,13 @@
       "src": "styles/guide-dialog.css"
     }
   ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
   "relationships": {
     "systems": [
       {
